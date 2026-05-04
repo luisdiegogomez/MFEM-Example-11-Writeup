@@ -18,19 +18,40 @@
 
 [One-paragraph description of the PDE problem this example solves. State what the PDE models physically — heat conduction, electromagnetics, elasticity, eigenmodes, etc.]
 
+The helmholtz equation is a partial differential equation (PDE) that finds both the solution $u$ and the eigenvalue $\lambda$ for the laplacian of $u$. The PDE is given as
+
 [State the strong form as a numbered display equation:]
+
 
 $$\text{[strong form of the PDE]} \tag{1}$$
 
-[with boundary conditions:]
+$$-\Delta u = \lambda u \quad \text{in } \Omega, \qquad u = 0 \quad \text{on } \partial\Omega \tag{1}$$
+
+with homogenous dirichlet boundary conditions.
 
 $$\text{[boundary conditions]}$$
 
 [where ... explain each symbol that appears.]
 
+
 ### Weak form
 
 [Describe the test-function multiplication and integration by parts, the same way the `ex1` tutorial does. Show the steps as numbered equations.]
+
+To solve the PDE, we first derive the weak form. Do do so, we multiply the PDE by a test function $v \in $, which gives us 
+
+$$-\Delta u v = \lambda u v\quad \text{in } \Omega, \qquad u = 0 \quad \text{on } \partial\Omega \tag{1}$$
+
+$$-\int_\Omega \Delta u \, v \, dx = \lambda \int_\Omega u \, v \, dx \tag{2}$$
+
+Integrating by parts using the divergence theorem on the left-hand side:
+
+$$\int_\Omega \nabla u \cdot \nabla v \, dx - \int_{\partial\Omega} (\nabla u \cdot n) \, v \, ds = \lambda \int_\Omega u \, v \, dx$$
+
+Since $v \in H^1_0(\Omega)$ vanishes on $\partial\Omega$, the boundary term drops out:
+
+$$\int_\Omega \nabla u \cdot \nabla v \, dx = \lambda \int_\Omega u \, v \, dx \tag{3}$$
+
 
 Multiplying (1) by a test function $\varphi_i$ and integrating by parts:
 
@@ -40,9 +61,33 @@ $$\text{[after integration by parts]} \tag{3}$$
 
 [Note any boundary terms that vanish, and why.]
 
-Substituting the FE expansion $u_h = \sum_j c_j \varphi_j$ gives the matrix system
+
+### Galerkin Discretization
+
+We use galerkin reduction to approximate the analytical solution $u$ as $u_h$, where 
+
+$$u_h = \sum_{i = 1}^n c_i \varphi_i$$
+
+$c_i$ represents the coefficients, corresponding to the degrees of freedom. $\varphi_i$ represents the basis functions, which in this case are piecewise polynomial functions of the specified oder. For our test function approximation of $v$, we can approximate $v$ as $v_h = \varphi_j$.
+Substituting $u_h$ and $v_h$ for $u$ and $v$ respectively yields
+
+$$\sum_{i=1}^n c_i \int_\Omega \nabla\varphi_i \cdot \nabla\varphi_j \, dx = \lambda \sum_{i=1}^n c_i \int_\Omega \varphi_i \, \varphi_j \, dx \tag{4}$$
+
+
+We can rewrite equation \ref{4} as 
+
+$$ A\textbf{x} = \lambda M\textbf{x}$$
 
 $$\text{[matrix form]} \tag{4}$$
+
+
+where
+
+$$A_{ij} = \int_\Omega \nabla\varphi_i \cdot \nabla\varphi_j \, dx$$
+
+$$M_{ij} =  \int_\Omega \varphi_i \, \varphi_j \, dx$$
+
+$$x_i = c_i$$
 
 where
 
@@ -72,6 +117,13 @@ MFEM's Example [N] implements the above formulation in the source file [`example
 
 Below we highlight selected portions of the example code and connect them with the description in the previous section. You can follow along by browsing [`ex[N]p.cpp`](https://github.com/mfem/mfem/blob/master/examples/ex[N]p.cpp) in your editor.
 
+
+The purpose of this example is to compute a set of the lowest eigenmodes for the referred eigenproblem. This example is only run in parallel.
+
+
+
+
+
 ### [Section 1 — typically MPI/HYPRE init for a parallel example]
 
 [One-line description of what this block does.] ([lines X–Y](https://github.com/mfem/mfem/blob/master/examples/ex[N]p.cpp#LX-LY)):
@@ -94,6 +146,9 @@ Below we highlight selected portions of the example code and connect them with t
 
 ### [Section 3 — mesh construction]
 
+The code loads the computational mesh from the file the user inputted, and then, creates the class `Mesh` and the corresponding object `mesh`. 
+
+
 [Description.] ([lines X–Y](https://github.com/mfem/mfem/blob/master/examples/ex[N]p.cpp#LX-LY)):
 
 ```cpp
@@ -102,13 +157,24 @@ Below we highlight selected portions of the example code and connect them with t
 
 [Explain the serial→parallel→refine pattern, or whatever mesh handling is specific to this example.]
 
+
+The code then refines the serial mesh and partitions it across MPI ranks.
+
+Using our `mesh` object we then partition the serial mesh to create a new parallel mesh, subsequently refining the parallel mesh.
+
+
 ### [Section 4 — finite element space]
 
 [Description.] ([lines X–Y](https://github.com/mfem/mfem/blob/master/examples/ex[N]p.cpp#LX-LY)):
 
+We now construct a finite element space using piecewise polynomial basis functions of the order the user inputted. We use an isoparametric/isogeometric space if the order < 1.
+
 ```cpp
 [code excerpt]
+
 ```
+
+The number of unknowns corresponds to the size of the linear system, or in other words, the number of coefficients $c_i$ from equation
 
 [Explain which FE space is being built (H1, H(curl), H(div), L2) and why it's the right space for this problem.]
 
