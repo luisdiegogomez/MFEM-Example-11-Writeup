@@ -14,24 +14,15 @@
 
 ---
 
-## ☑ [Problem name]
+The Laplacian Eigenproblem (also known as the Laplacian Eigenfunction) is a partial differential equation (PDE) that finds both the solution $u$ and the eigenvalue $\lambda$ for the laplacian of $u$. It is typically applied to  The PDE is given as
 
-[One-paragraph description of the PDE problem this example solves. State what the PDE models physically — heat conduction, electromagnetics, elasticity, eigenmodes, etc.]
+$$-\Delta u = \lambda u \quad \text{in } \Omega,\tag{1}$$
 
-The helmholtz equation is a partial differential equation (PDE) that finds both the solution $u$ and the eigenvalue $\lambda$ for the laplacian of $u$. The PDE is given as
+with homogenous dirichlet boundary conditions
 
-[State the strong form as a numbered display equation:]
+$$u = 0 \quad \text{on } \partial\Omega.$$
 
-
-$$\text{[strong form of the PDE]} \tag{1}$$
-
-$$-\Delta u = \lambda u \quad \text{in } \Omega, \qquad u = 0 \quad \text{on } \partial\Omega \tag{1}$$
-
-with homogenous dirichlet boundary conditions.
-
-$$\text{[boundary conditions]}$$
-
-[where ... explain each symbol that appears.]
+Where $\Omega$ is a bounded domain of general shape $\Omega\subset\mathbb{R}^d$. 
 
 
 ### Weak form
