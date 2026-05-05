@@ -18,7 +18,7 @@
 
 The Laplacian Eigenproblem (also known as the Laplacian Eigenfunction) is a partial differential equation (PDE) that finds both the solution $u$ and the eigenvalue $\lambda$ for the laplacian of $u$. It has applications in which it is necessary to analyze the spatial frequency inside of the bounded domain of general shape $\Omega\subset\mathbb{R}^d$. The PDE is given as
 
-$$-\Delta u = \lambda u \quad \text{in } \Omega,\tag{1}$$
+$$-\Delta u = \lambda u \quad \text{in } \Omega, \tag{1}$$
 
 with homogenous dirichlet boundary conditions
 
