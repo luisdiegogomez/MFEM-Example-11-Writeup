@@ -65,15 +65,15 @@ $$\sum_{i=1}^n c_i \int_\Omega \nabla\varphi_i \cdot \nabla\varphi_j \, dx = \la
 
 We can rewrite equation (3) as 
 
-$$ K\textbf{c} = \lambda M\textbf{c}, \tag{4}$$
+$$ A\textbf{x} = \lambda M\textbf{x}, \tag{4}$$
 
 where
 
-$$K_{ij} = \int_\Omega \nabla\varphi_i \cdot \nabla\varphi_j \, dx,$$
+$$A_{ij} = \int_\Omega \nabla\varphi_i \cdot \nabla\varphi_j \, dx,$$
 
 $$M_{ij} =  \int_\Omega \varphi_i \, \varphi_j \, dx,$$
 
-$$\textbf{c}_i = c_i.$$
+$$\textbf{x}_i = c_i.$$
 
 ### [Optional subsection: anything specific to this example]
 
