@@ -31,11 +31,11 @@ Where $\Omega$ is a bounded domain of general shape $\Omega\subset\mathbb{R}^d$.
 
 To solve the PDE, we first derive the weak form. To do so, we multiply the PDE by a test function $v \in H^1_0(\Omega)$, which gives us 
 
-$$-\Delta u v = \lambda u v\quad \text{in } \Omega, \qquad u = 0 \quad \text{on } \partial\Omega \tag{2}.$$
+$$-\Delta u v = \lambda u v\quad \text{in } \Omega, \qquad u = 0 \quad \text{on } \partial\Omega.$$
 
 We then integrate both sides over $\Omega$:
 
-$$\int_\Omega (-\Delta u) v \, dx = \lambda \int_\Omega u v \, dx. \tag{3}$$
+$$\int_\Omega (-\Delta u) v \, dx = \lambda \int_\Omega u v \, dx.$$
 
 Integrating by parts and using the divergence theorem on the left-hand side we arrive at:
 
@@ -43,14 +43,14 @@ $$\int_\Omega \nabla u \cdot \nabla v \, dx - \int_{\partial\Omega} (\nabla u \c
 
 Since $v \in H^1_0(\Omega)$ vanishes on $\partial\Omega$, the boundary term drops out:
 
-$$\int_\Omega \nabla u \cdot \nabla v \, dx = \lambda \int_\Omega u v \, dx. \tag{4}$$
+$$\int_\Omega \nabla u \cdot \nabla v \, dx = \lambda \int_\Omega u v \, dx.$$
 
 Giving us the final weak form:
 
 $$\begin{cases} 
     \text{Find } u \in H^1_0(\Omega) \text{ such that } u=0 \text{ on } \partial\Omega \text{ and}\\
     (\nabla u, \nabla v) = \lambda(u,v).
-\end{cases}$$
+\end{cases} \tag{2}$$
 
 ### Galerkin Discretization
 
@@ -61,33 +61,19 @@ $$u_h = \sum_{i = 1}^n c_i \varphi_i,$$
 $c_i$ represents the coefficients, corresponding to the degrees of freedom. $\varphi_i$ represents the basis functions, which in this case are piecewise polynomial functions of the specified order. For our test function approximation of $v$, we can approximate $v$ as $v_h = \varphi_j$.
 Substituting $u_h$ and $v_h$ for $u$ and $v$ respectively yields
 
-$$\sum_{i=1}^n c_i \int_\Omega \nabla\varphi_i \cdot \nabla\varphi_j \, dx = \lambda \sum_{i=1}^n c_i \int_\Omega \varphi_i \, \varphi_j \, dx \tag{4}$$
+$$\sum_{i=1}^n c_i \int_\Omega \nabla\varphi_i \cdot \nabla\varphi_j \, dx = \lambda \sum_{i=1}^n c_i \int_\Omega \varphi_i \, \varphi_j \, dx. \tag{3}$$
 
+We can rewrite equation (3) as 
 
-We can rewrite equation \ref{4} as 
-
-$$ A\textbf{x} = \lambda M\textbf{x}$$
-
-$$\text{[matrix form]} \tag{4}$$
-
+$$ K\textbf{c} = \lambda M\textbf{c}, \tag{4}$$
 
 where
 
-$$A_{ij} = \int_\Omega \nabla\varphi_i \cdot \nabla\varphi_j \, dx$$
+$$K_{ij} = \int_\Omega \nabla\varphi_i \cdot \nabla\varphi_j \, dx,$$
 
-$$M_{ij} =  \int_\Omega \varphi_i \, \varphi_j \, dx$$
+$$M_{ij} =  \int_\Omega \varphi_i \, \varphi_j \, dx,$$
 
-$$x_i = c_i$$
-
-where
-
-$$A_{ij} = \text{[bilinear form entry]} \tag{5}$$
-
-$$b_i = \text{[linear form entry]} \tag{6}$$
-
-$$x_j = c_j \tag{7}$$
-
-[Brief paragraph: properties of $A$ — symmetric? positive definite? saddle-point? — and what that implies for solvers.]
+$$\textbf{c}_i = c_i.$$
 
 ### [Optional subsection: anything specific to this example]
 
