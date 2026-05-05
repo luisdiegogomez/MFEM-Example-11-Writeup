@@ -31,11 +31,13 @@ Where $\Omega$ is a bounded domain of general shape $\Omega\subset\mathbb{R}^d$.
 
 To solve the PDE, we first derive the weak form. To do so, we multiply the PDE by a test function $v \in H^1_0(\Omega)$, which gives us 
 
-$$-\Delta u v = \lambda u v\quad \text{in } \Omega, \qquad u = 0 \quad \text{on } \partial\Omega \tag{2}$$
+$$-\Delta u v = \lambda u v\quad \text{in } \Omega, \qquad u = 0 \quad \text{on } \partial\Omega \tag{2}.$$
 
-$$-\int_\Omega \Delta u \, v \, dx = \lambda \int_\Omega u \, v \, dx \tag{3}$$
+We then integrate both sides over $\Omega$:
 
-Integrating by parts using the divergence theorem on the left-hand side:
+$$\int_\Omega (-\Delta u) v \, dx = \lambda \int_\Omega u v \, dx. \tag{3}$$
+
+Integrating by parts and using the divergence theorem on the left-hand side we arrive at:
 
 $$\int_\Omega \nabla u \cdot \nabla v \, dx - \int_{\partial\Omega} (\nabla u \cdot n) \, v \, ds = \lambda \int_\Omega u \, v \, dx$$
 
