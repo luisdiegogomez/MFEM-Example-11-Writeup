@@ -1,4 +1,4 @@
-# 📘 [Example Title]
+# 📘 Example 11: Laplacian Eigenproblem
 
 `[duration]` `[difficulty: basic | intermediate | advanced]`
 
@@ -14,7 +14,9 @@
 
 ---
 
-The Laplacian Eigenproblem (also known as the Laplacian Eigenfunction) is a partial differential equation (PDE) that finds both the solution $u$ and the eigenvalue $\lambda$ for the laplacian of $u$. It is typically applied to  The PDE is given as
+## ☑ Laplacian Eigenproblem
+
+The Laplacian Eigenproblem (also known as the Laplacian Eigenfunction) is a partial differential equation (PDE) that finds both the solution $u$ and the eigenvalue $\lambda$ for the laplacian of $u$. It has applications in which it is necessary to analyze the spatial frequency inside of the bounded domain of general shape $\Omega\subset\mathbb{R}^d$. The PDE is given as
 
 $$-\Delta u = \lambda u \quad \text{in } \Omega,\tag{1}$$
 
@@ -29,7 +31,7 @@ Where $\Omega$ is a bounded domain of general shape $\Omega\subset\mathbb{R}^d$.
 
 [Describe the test-function multiplication and integration by parts, the same way the `ex1` tutorial does. Show the steps as numbered equations.]
 
-To solve the PDE, we first derive the weak form. Do do so, we multiply the PDE by a test function $v \in $, which gives us 
+To solve the PDE, we first derive the weak form. We multiply the PDE by a test function $v \in $, which gives us 
 
 $$-\Delta u v = \lambda u v\quad \text{in } \Omega, \qquad u = 0 \quad \text{on } \partial\Omega \tag{1}$$
 
@@ -100,9 +102,9 @@ $$x_j = c_j \tag{7}$$
 
 ---
 
-## ☑ Annotated Example [N]
+## ☑ Annotated Example 11
 
-MFEM's Example [N] implements the above formulation in the source file [`examples/ex[N]p.cpp`](https://github.com/mfem/mfem/blob/master/examples/ex[N]p.cpp). [State whether the example has a serial version, a parallel version, or both, and which you're annotating.]
+MFEM's Example 11 implements the above formulation in the source file [`examples/ex11p.cpp`](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp). [State whether the example has a serial version, a parallel version, or both, and which you're annotating.]
 
 [One-paragraph summary of what the example does end-to-end: e.g., "We compute the lowest `nev` eigenpairs on a mesh provided as input."]
 
