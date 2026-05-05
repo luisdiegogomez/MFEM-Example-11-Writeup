@@ -29,13 +29,11 @@ Where $\Omega$ is a bounded domain of general shape $\Omega\subset\mathbb{R}^d$.
 
 ### Weak form
 
-[Describe the test-function multiplication and integration by parts, the same way the `ex1` tutorial does. Show the steps as numbered equations.]
+To solve the PDE, we first derive the weak form. To do so, we multiply the PDE by a test function $v \in H^1_0(\Omega)$, which gives us 
 
-To solve the PDE, we first derive the weak form. We multiply the PDE by a test function $v \in $, which gives us 
+$$-\Delta u v = \lambda u v\quad \text{in } \Omega, \qquad u = 0 \quad \text{on } \partial\Omega \tag{2}$$
 
-$$-\Delta u v = \lambda u v\quad \text{in } \Omega, \qquad u = 0 \quad \text{on } \partial\Omega \tag{1}$$
-
-$$-\int_\Omega \Delta u \, v \, dx = \lambda \int_\Omega u \, v \, dx \tag{2}$$
+$$-\int_\Omega \Delta u \, v \, dx = \lambda \int_\Omega u \, v \, dx \tag{3}$$
 
 Integrating by parts using the divergence theorem on the left-hand side:
 
@@ -43,14 +41,14 @@ $$\int_\Omega \nabla u \cdot \nabla v \, dx - \int_{\partial\Omega} (\nabla u \c
 
 Since $v \in H^1_0(\Omega)$ vanishes on $\partial\Omega$, the boundary term drops out:
 
-$$\int_\Omega \nabla u \cdot \nabla v \, dx = \lambda \int_\Omega u \, v \, dx \tag{3}$$
+$$\int_\Omega \nabla u \cdot \nabla v \, dx = \lambda \int_\Omega u \, v \, dx \tag{4}$$
 
 
 Multiplying (1) by a test function $\varphi_i$ and integrating by parts:
 
-$$\text{[after multiplication]} \tag{2}$$
+$$\text{[after multiplication]} \tag{5}$$
 
-$$\text{[after integration by parts]} \tag{3}$$
+$$\text{[after integration by parts]} \tag{6}$$
 
 [Note any boundary terms that vanish, and why.]
 
