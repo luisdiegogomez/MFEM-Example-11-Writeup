@@ -173,9 +173,13 @@ The number of unknowns corresponds to the size of the linear system, or in other
 
 [Description.] ([lines X–Y](https://github.com/mfem/mfem/blob/master/examples/ex[N]p.cpp#LX-LY)):
 
+As mentioned previously the boundary conditions are homogenous Dirichlet. We do so 
+
 ```cpp
 [code excerpt]
 ```
+
+The array `ess_bdr` identifies the boundaries that are Dirichlet. The function `MarkExternalBoundaries` takes `ess_bdr` as an input and applies the boundary conditions to all external boundaries.
 
 [Explain how essential vs. natural BCs are handled. If there's anything tricky about the BC handling — e.g., elimination, weak imposition — explain it here.]
 
@@ -183,9 +187,14 @@ The number of unknowns corresponds to the size of the linear system, or in other
 
 [Description.] ([lines X–Y](https://github.com/mfem/mfem/blob/master/examples/ex[N]p.cpp#LX-LY)):
 
+We set up the parallel bilinear forms on the finite element space for _ and _. This is created using the class `ParaBilinearForm`
 ```cpp
 [code excerpt]
 ```
+
+We find the stiffness matrix $A$ by using a diffusion integrator, `DiffusionIntegrator`, over the domain. We add a mass term if the mesh has no boundary.
+
+We find the mass matrx $M$ by using the mass integrator `MassIntegrator`.
 
 [Connect each `Add...Integrator(...)` call back to the corresponding term in the weak form (equations 2–3 above). Mention which integrators are used and what they correspond to mathematically.]
 
