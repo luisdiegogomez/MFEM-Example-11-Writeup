@@ -39,29 +39,26 @@ $$\int_\Omega (-\Delta u) v \, dx = \lambda \int_\Omega u v \, dx. \tag{3}$$
 
 Integrating by parts and using the divergence theorem on the left-hand side we arrive at:
 
-$$\int_\Omega \nabla u \cdot \nabla v \, dx - \int_{\partial\Omega} (\nabla u \cdot n) \, v \, ds = \lambda \int_\Omega u \, v \, dx$$
+$$\int_\Omega \nabla u \cdot \nabla v \, dx - \int_{\partial\Omega} (\nabla u \cdot n) \, v \, ds = \lambda \int_\Omega u \, v \, dx.$$
 
 Since $v \in H^1_0(\Omega)$ vanishes on $\partial\Omega$, the boundary term drops out:
 
-$$\int_\Omega \nabla u \cdot \nabla v \, dx = \lambda \int_\Omega u \, v \, dx \tag{4}$$
+$$\int_\Omega \nabla u \cdot \nabla v \, dx = \lambda \int_\Omega u v \, dx. \tag{4}$$
 
+Giving us the final weak form:
 
-Multiplying (1) by a test function $\varphi_i$ and integrating by parts:
-
-$$\text{[after multiplication]} \tag{5}$$
-
-$$\text{[after integration by parts]} \tag{6}$$
-
-[Note any boundary terms that vanish, and why.]
-
+$$\begin{cases} 
+    \text{Find } u \in H^1_0(\Omega) \text{ such that } u=0 \text{ on } \partial\Omega \text{ and}\\
+    (\nabla u, \nabla v) = \lambda(u,v).
+\end{cases}$$
 
 ### Galerkin Discretization
 
 We use galerkin reduction to approximate the analytical solution $u$ as $u_h$, where 
 
-$$u_h = \sum_{i = 1}^n c_i \varphi_i$$
+$$u_h = \sum_{i = 1}^n c_i \varphi_i,$$
 
-$c_i$ represents the coefficients, corresponding to the degrees of freedom. $\varphi_i$ represents the basis functions, which in this case are piecewise polynomial functions of the specified oder. For our test function approximation of $v$, we can approximate $v$ as $v_h = \varphi_j$.
+$c_i$ represents the coefficients, corresponding to the degrees of freedom. $\varphi_i$ represents the basis functions, which in this case are piecewise polynomial functions of the specified order. For our test function approximation of $v$, we can approximate $v$ as $v_h = \varphi_j$.
 Substituting $u_h$ and $v_h$ for $u$ and $v$ respectively yields
 
 $$\sum_{i=1}^n c_i \int_\Omega \nabla\varphi_i \cdot \nabla\varphi_j \, dx = \lambda \sum_{i=1}^n c_i \int_\Omega \varphi_i \, \varphi_j \, dx \tag{4}$$
