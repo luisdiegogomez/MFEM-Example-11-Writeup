@@ -128,15 +128,37 @@ The code loads the computational mesh from the file the user inputted, and then,
 [Description.] ([lines X–Y](https://github.com/mfem/mfem/blob/master/examples/ex[N]p.cpp#LX-LY)):
 
 ```cpp
-[code excerpt]
+Mesh *mesh = new Mesh(mesh_file, 1, 1);
+int dim = mesh->Dimension();
+
+
+
 ```
 
-[Explain the serial→parallel→refine pattern, or whatever mesh handling is specific to this example.]
 
 
-The code then refines the serial mesh and partitions it across MPI ranks.
 
-Using our `mesh` object we then partition the serial mesh to create a new parallel mesh, subsequently refining the parallel mesh.
+The mesh is then refined uniformly on all processors. The number of refinement levels is $2$ by default but can be changed via user input.
+
+```cpp
+for (int lev = 0; lev < ser_ref_levels; lev++)
+   {
+      mesh->UniformRefinement();
+   }
+```
+
+
+We now want to create a new parallel mesh. The next three lines create the parallel mesh by partitioning the serial mesh and refining further to increase the resolution. The additional refinement level, `par_ref_levels`, is set to $1$ by default but can be modified via user input.
+
+```cpp
+ParMesh *pmesh = new ParMesh(MPI_COMM_WORLD, *mesh);
+delete mesh;
+for (int lev = 0; lev < par_ref_levels; lev++)
+{
+    pmesh->UniformRefinement();
+}
+```
+Once we create our parallel mesh we are free to delete the serial mesh.
 
 
 ### [Section 4 — finite element space]
@@ -145,9 +167,38 @@ Using our `mesh` object we then partition the serial mesh to create a new parall
 
 We now construct a finite element space using piecewise polynomial basis functions of the order the user inputted. We use an isoparametric/isogeometric space if the order < 1.
 
+We create `FiniteElementCollection` object `fec`. If we have not already set the `fec` previously, we set the space to be the $H^1$ space on the given domain and `order` corresponds to the polynomial degree. If the user does not input an order value, `order` is set to 1.
+
 ```cpp
+FiniteElementCollection *fec;
+if (order > 0)
+{
+    fec = new H1_FECollection(order, dim);
+}
+else if (pmesh->GetNodes())
+{
+    fec = pmesh->GetNodes()->OwnFEC();
+}
+else
+{
+    fec = new H1_FECollection(order = 1, dim);
+}
+
 [code excerpt]
 
+```
+
+
+We now define a parallel finite element space
+
+```cpp
+
+ParFiniteElementSpace *fespace = new ParFiniteElementSpace(pmesh, fec);
+HYPRE_BigInt size = fespace->GlobalTrueVSize();
+if (myid == 0)
+{
+    cout << "Number of unknowns: " << size << endl;
+}
 ```
 
 The number of unknowns corresponds to the size of the linear system, or in other words, the number of coefficients $c_i$ from equation
@@ -161,7 +212,16 @@ The number of unknowns corresponds to the size of the linear system, or in other
 As mentioned previously the boundary conditions are homogenous Dirichlet. We do so 
 
 ```cpp
-[code excerpt]
+ConstantCoefficient one(1.0);
+Array<int> ess_bdr;
+if (pmesh->bdr_attributes.Size())
+{
+    ess_bdr.SetSize(pmesh->bdr_attributes.Max());
+    ess_bdr = 0;
+
+    pmesh->MarkExternalBoundaries(ess_bdr);
+ 
+}
 ```
 
 The array `ess_bdr` identifies the boundaries that are Dirichlet. The function `MarkExternalBoundaries` takes `ess_bdr` as an input and applies the boundary conditions to all external boundaries.
@@ -174,20 +234,36 @@ The array `ess_bdr` identifies the boundaries that are Dirichlet. The function `
 
 We set up the parallel bilinear forms on the finite element space for _ and _. This is created using the class `ParaBilinearForm`
 ```cpp
-[code excerpt]
+ParBilinearForm *a = new ParBilinearForm(fespace);
+a->AddDomainIntegrator(new DiffusionIntegrator(one));
+if (pmesh->bdr_attributes.Size() == 0)
+{
+   
+    a->AddDomainIntegrator(new MassIntegrator(one));
+}
+a->Assemble();
+a->EliminateEssentialBCDiag(ess_bdr, 1.0);
+a->Finalize();
 ```
 
 We find the stiffness matrix $A$ by using a diffusion integrator, `DiffusionIntegrator`, over the domain. We add a mass term if the mesh has no boundary.
 
 We find the mass matrx $M$ by using the mass integrator `MassIntegrator`.
 
-[Connect each `Add...Integrator(...)` call back to the corresponding term in the weak form (equations 2–3 above). Mention which integrators are used and what they correspond to mathematically.]
+```cpp
+ParBilinearForm *m = new ParBilinearForm(fespace);
+m->AddDomainIntegrator(new MassIntegrator(one));
+m->Assemble();
+// shift the eigenvalue corresponding to eliminated dofs to a large value
+m->EliminateEssentialBCDiag(ess_bdr, numeric_limits<real_t>::min());
+m->Finalize();
+```
 
-[If there's anything subtle here — like a special trick the example uses to handle a singular operator, or a non-standard boundary integrator — call it out:]
+```cpp
+HypreParMatrix *A = a->ParallelAssemble();
+HypreParMatrix *M = m->ParallelAssemble();
+```
 
-**(i) [Subtlety name].** [Explanation.]
-
-**(ii) [Another subtlety, if applicable].** [Explanation.]
 
 ### [Section 7 — preconditioner / solver setup]
 
@@ -199,12 +275,72 @@ We find the mass matrx $M$ by using the mass integrator `MassIntegrator`.
 
 [Explain the choice of solver and preconditioner. Why is this combination appropriate for this PDE? What's the expected scaling behavior?]
 
-### [Section 8 — solve]
+### [Section 8 — Setting up Eigensolver]
 
 [Description.] ([lines X–Y](https://github.com/mfem/mfem/blob/master/examples/ex[N]p.cpp#LX-LY)):
 
 ```cpp
-[code excerpt]
+Solver * precond = NULL;
+if (!slu_solver && !sp_solver && !cpardiso_solver)
+{
+    HypreBoomerAMG * amg = new HypreBoomerAMG(*A);
+    amg->SetPrintLevel(0);
+    precond = amg;
+}
+else
+{
+#ifdef MFEM_USE_SUPERLU
+    if (slu_solver)
+    {
+        SuperLUSolver * superlu = new SuperLUSolver(MPI_COMM_WORLD);
+        superlu->SetPrintStatistics(false);
+        superlu->SetSymmetricPattern(true);
+        superlu->SetColumnPermutation(superlu::PARMETIS);
+        superlu->SetOperator(*Arow);
+        precond = superlu;
+    }
+#endif
+#ifdef MFEM_USE_STRUMPACK
+    if (sp_solver)
+    {
+        STRUMPACKSolver * strumpack = new STRUMPACKSolver(MPI_COMM_WORLD, argc, argv);
+        strumpack->SetPrintFactorStatistics(true);
+        strumpack->SetPrintSolveStatistics(false);
+        strumpack->SetKrylovSolver(strumpack::KrylovSolver::DIRECT);
+        strumpack->SetReorderingStrategy(strumpack::ReorderingStrategy::METIS);
+        strumpack->SetMatching(strumpack::MatchingJob::NONE);
+        strumpack->SetCompression(strumpack::CompressionType::NONE);
+        strumpack->SetOperator(*Arow);
+        strumpack->SetFromCommandLine();
+        precond = strumpack;
+    }
+#endif
+#ifdef MFEM_USE_MKL_CPARDISO
+    if (cpardiso_solver)
+    {
+        auto cpardiso = new CPardisoSolver(A->GetComm());
+        cpardiso->SetMatrixType(CPardisoSolver::MatType::REAL_STRUCTURE_SYMMETRIC);
+        cpardiso->SetPrintLevel(1);
+        cpardiso->SetOperator(*A);
+        precond = cpardiso;
+    }
+#endif
+}
+ 
+```
+
+
+```cpp
+HypreLOBPCG * lobpcg = new HypreLOBPCG(MPI_COMM_WORLD);
+lobpcg->SetNumModes(nev);
+lobpcg->SetRandomSeed(seed);
+lobpcg->SetPreconditioner(*precond);
+lobpcg->SetMaxIter(200);
+lobpcg->SetTol(1e-8);
+lobpcg->SetPrecondUsageMode(1);
+lobpcg->SetPrintLevel(1);
+lobpcg->SetMassMatrix(*M);
+lobpcg->SetOperator(*A);
 ```
 
 [Explain what `Solve()` / `Mult()` does, what the return value or output is, and how the solution is post-processed if needed.]
@@ -214,7 +350,7 @@ We find the mass matrx $M$ by using the mass integrator `MassIntegrator`.
 [Description.] ([lines X–Y](https://github.com/mfem/mfem/blob/master/examples/ex[N]p.cpp#LX-LY)):
 
 ```cpp
-[code excerpt]
+
 ```
 
 [Explain how the solution is written to disk and/or sent to GLVis.]
