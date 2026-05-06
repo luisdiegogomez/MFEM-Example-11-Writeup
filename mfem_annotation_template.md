@@ -93,29 +93,36 @@ MFEM's Example 11 implements the above formulation in the source file [`examples
 
 Below we highlight selected portions of the example code and connect them with the description in the previous section. You can follow along by browsing [`ex11p.cpp`](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp) in your editor.
 
-
 The purpose of this example is to compute a set of the lowest eigenmodes for the referred eigenproblem. This example is only run in parallel.
-
-
-
-
 
 ### [Section 1 — typically MPI/HYPRE init for a parallel example]
 
-[One-line description of what this block does.] ([lines 61–64](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L61-L64)):
+[Initialize MPI and HYPRE.] ([lines 61–64](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L61-L64)):
 
 ```cpp
-[code excerpt]
+Mpi::Init(argc, argv);
+   int num_procs = Mpi::WorldSize();
+   int myid = Mpi::WorldRank();
+   Hypre::Init();
 ```
 
 [Prose explanation: what the code does, why it's here, anything subtle.]
 
-### [Section 2 — command-line options]
+### [Section 2 — Parse command-line options.]
 
-[Short description.] ([lines 67–132](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L67-L132)):
+[Parse command-line options.] ([lines 67–132](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L67-L132)):
 
 ```cpp
-[code excerpt]
+const char *mesh_file = "../data/star.mesh";
+   int ser_ref_levels = 2;
+   int par_ref_levels = 1;
+   int order = 1;
+   int nev = 5;
+   int seed = 75;
+   bool slu_solver  = false;
+   bool sp_solver = false;
+   bool cpardiso_solver = false;
+   bool visualization = 1;
 ```
 
 [Explain what each option controls. Highlight the ones specific to this example.]
@@ -125,18 +132,16 @@ The purpose of this example is to compute a set of the lowest eigenmodes for the
 The code loads the computational mesh from the file the user inputted, and then, creates the class `Mesh` and the corresponding object `mesh`. 
 
 
-[Description.] ([lines 137–138](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L137-L138)):
+[Read the (serial) mesh from the given mesh file on all processors. We can handle triangular, quadrilateral, tetrahedral, hexahedral, surface and volume meshes with the same code.] ([lines 137–138](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L137-L138)):
 
 ```cpp
 Mesh *mesh = new Mesh(mesh_file, 1, 1);
 int dim = mesh->Dimension();
-
-
-
 ```
 
+### [Section 4 — Refine the serial mesh]
 
-
+[Refine the serial mesh on all processors to increase the resolution. In this example we do 'ref_levels' of uniform refinement (2 by default, or specified on the command line with -rs).] ([lines 143–146](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#LX143-L146)):
 
 The mesh is then refined uniformly on all processors. The number of refinement levels is $2$ by default but can be changed via user input.
 
@@ -147,6 +152,9 @@ for (int lev = 0; lev < ser_ref_levels; lev++)
    }
 ```
 
+### [Section 5 — Define parallel mesh]
+
+[Define a parallel mesh by a partitioning of the serial mesh. Refine this mesh further in parallel to increase the resolution (1 time by default, or specified on the command line with -rp). Once the parallel mesh is defined, the serial mesh can be deleted.] ([lines 152–157](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L152-L157)):
 
 We now want to create a new parallel mesh. The next three lines create the parallel mesh by partitioning the serial mesh and refining further to increase the resolution. The additional refinement level, `par_ref_levels`, is set to $1$ by default but can be modified via user input.
 
@@ -159,17 +167,6 @@ for (int lev = 0; lev < par_ref_levels; lev++)
 }
 ```
 Once we create our parallel mesh we are free to delete the serial mesh.
-
-
-### [Section 4 — Refine the serial mesh]
-
-[Description.] ([lines 143–146](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#LX143-L146)):
-
-
-### [Section 5 — Define parallel mesh]
-
-[Description.] ([lines 152–157](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L152-L157)):
-
 
 ### [Section 6 — Define parallel finite element space]
 
@@ -218,7 +215,7 @@ The number of unknowns corresponds to the size of the linear system, or in other
 
 ### [Section 7 — Parallel bilinear forms]
 
-[Description.] ([lines 190–241](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L190-L241)):
+[Set up the parallel bilinear forms a(.,.) and m(.,.) on the finite element space. The first corresponds to the Laplacian operator -Delta, while the second is a simple mass matrix needed on the right hand side of the generalized eigenvalue problem below. The boundary conditions are implemented by elimination with special values on the diagonal to shift the Dirichlet eigenvalues out of the computational range. After serial and parallel assembly we extract the corresponding parallel matrices A and M.] ([lines 190–241](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L190-L241)):
 
 The array `ess_bdr` identifies the boundaries that are Dirichlet. The function `MarkExternalBoundaries` takes `ess_bdr` as an input and applies the boundary conditions to all external boundaries.
 
@@ -274,7 +271,7 @@ if (pmesh->bdr_attributes.Size())
 
 ### [Section 8 — Setting up Eigensolver]
 
-[Description.] ([lines 246–302](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L246-L302)):
+[Define and configure the LOBPCG eigensolver and the BoomerAMG preconditioner for A to be used within the solver. Set the matrices which define the generalized eigenproblem A x = lambda M x.] ([lines 246–302](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L246-L302)):
 
 ```cpp
 Solver * precond = NULL;
@@ -346,7 +343,7 @@ lobpcg->SetOperator(*A);
 
 ### [Section 9 — Compute eigenmodes and extract eigenvalues]
 
-[Description.] ([lines 307–310](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L307-L310)):
+[Compute the eigenmodes and extract the array of eigenvalues. Define a parallel grid function to represent each of the eigenmodes returned by the solver.] ([lines 307–310](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L307-L310)):
 
 ```cpp
 
@@ -358,20 +355,26 @@ lobpcg->SetOperator(*A);
 
 ### [Section 10 — Save refined mesh and modes in parallel]
 
+[Save the refined mesh and the modes in parallel. This output can be viewed later using GLVis: "glvis -np <np> -m mesh -g mode".] ([lines 314–335](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L314-L335)):
+
 ### [Section 11 — Send solution to GLVis server]
 
+[Send the solution by socket to a GLVis server.] ([lines 338–375](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L338-L375)):
+
 ### [Section 12 — Free used memory]
+
+[Free the used memory.] ([lines 378–394](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L338-L375)):
 
 ---
 
 ## ☑ Sample runs
 
-A few representative invocations (these match the comments at the top of `ex[N]p.cpp`):
+A few representative invocations (these match the comments at the top of `ex11p.cpp`):
 
 ```bash
-mpirun -np 4 ex[N]p -m ../data/[mesh1].mesh
-mpirun -np 4 ex[N]p -m ../data/[mesh2].mesh -o 2
-mpirun -np 4 ex[N]p -m ../data/[mesh3].mesh -[other flag]
+mpirun -np 4 ex11p -m ../data/[mesh1].mesh
+mpirun -np 4 ex11p -m ../data/[mesh2].mesh -o 2
+mpirun -np 4 ex11p -m ../data/[mesh3].mesh -[other flag]
 ```
 
 [Brief description of what each sample run is testing — different mesh types, different orders, different physics regimes.]
