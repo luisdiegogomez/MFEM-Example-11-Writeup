@@ -91,7 +91,7 @@ MFEM's Example 11 implements the above formulation in the source file [`examples
 
 [One-paragraph summary of what the example does end-to-end: e.g., "We compute the lowest `nev` eigenpairs on a mesh provided as input."]
 
-Below we highlight selected portions of the example code and connect them with the description in the previous section. You can follow along by browsing [`ex[N]p.cpp`](https://github.com/mfem/mfem/blob/master/examples/ex[N]p.cpp) in your editor.
+Below we highlight selected portions of the example code and connect them with the description in the previous section. You can follow along by browsing [`ex11p.cpp`](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp) in your editor.
 
 
 The purpose of this example is to compute a set of the lowest eigenmodes for the referred eigenproblem. This example is only run in parallel.
@@ -125,7 +125,7 @@ The purpose of this example is to compute a set of the lowest eigenmodes for the
 The code loads the computational mesh from the file the user inputted, and then, creates the class `Mesh` and the corresponding object `mesh`. 
 
 
-[Description.] ([lines X–Y](https://github.com/mfem/mfem/blob/master/examples/ex[N]p.cpp#LX-LY)):
+[Description.] ([lines 137–138](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L137-L138)):
 
 ```cpp
 Mesh *mesh = new Mesh(mesh_file, 1, 1);
@@ -161,9 +161,19 @@ for (int lev = 0; lev < par_ref_levels; lev++)
 Once we create our parallel mesh we are free to delete the serial mesh.
 
 
-### [Section 4 — finite element space]
+### [Section 4 — Refine the serial mesh]
 
-[Description.] ([lines X–Y](https://github.com/mfem/mfem/blob/master/examples/ex[N]p.cpp#LX-LY)):
+[Description.] ([lines 143–146](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#LX143-L146)):
+
+
+### [Section 5 — Define parallel mesh]
+
+[Description.] ([lines 152–157](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L152-L157)):
+
+
+### [Section 6 — Define parallel finite element space]
+
+[Define a parallel finite element space on the parallel mesh. Here we use continuous Lagrange finite elements of the specified order. If order < 1, we instead use an isoparametric/isogeometric space.] ([lines 162–180](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L162-L180)):
 
 We now construct a finite element space using piecewise polynomial basis functions of the order the user inputted. We use an isoparametric/isogeometric space if the order < 1.
 
@@ -205,32 +215,14 @@ The number of unknowns corresponds to the size of the linear system, or in other
 
 [Explain which FE space is being built (H1, H(curl), H(div), L2) and why it's the right space for this problem.]
 
-### [Section 5 — boundary conditions]
 
-[Description.] ([lines X–Y](https://github.com/mfem/mfem/blob/master/examples/ex[N]p.cpp#LX-LY)):
+### [Section 7 — Parallel bilinear forms]
 
-As mentioned previously the boundary conditions are homogenous Dirichlet. We do so 
-
-```cpp
-ConstantCoefficient one(1.0);
-Array<int> ess_bdr;
-if (pmesh->bdr_attributes.Size())
-{
-    ess_bdr.SetSize(pmesh->bdr_attributes.Max());
-    ess_bdr = 0;
-
-    pmesh->MarkExternalBoundaries(ess_bdr);
- 
-}
-```
+[Description.] ([lines 190–241](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L190-L241)):
 
 The array `ess_bdr` identifies the boundaries that are Dirichlet. The function `MarkExternalBoundaries` takes `ess_bdr` as an input and applies the boundary conditions to all external boundaries.
 
-[Explain how essential vs. natural BCs are handled. If there's anything tricky about the BC handling — e.g., elimination, weak imposition — explain it here.]
-
-### [Section 6 — bilinear / linear forms]
-
-[Description.] ([lines X–Y](https://github.com/mfem/mfem/blob/master/examples/ex[N]p.cpp#LX-LY)):
+As mentioned previously the boundary conditions are homogenous Dirichlet. We do so 
 
 We set up the parallel bilinear forms on the finite element space for _ and _. This is created using the class `ParaBilinearForm`
 ```cpp
@@ -264,20 +256,25 @@ HypreParMatrix *A = a->ParallelAssemble();
 HypreParMatrix *M = m->ParallelAssemble();
 ```
 
-
-### [Section 7 — preconditioner / solver setup]
-
-[Description.] ([lines X–Y](https://github.com/mfem/mfem/blob/master/examples/ex[N]p.cpp#LX-LY)):
-
 ```cpp
-[code excerpt]
+ConstantCoefficient one(1.0);
+Array<int> ess_bdr;
+if (pmesh->bdr_attributes.Size())
+{
+    ess_bdr.SetSize(pmesh->bdr_attributes.Max());
+    ess_bdr = 0;
+
+    pmesh->MarkExternalBoundaries(ess_bdr);
+ 
+}
 ```
 
-[Explain the choice of solver and preconditioner. Why is this combination appropriate for this PDE? What's the expected scaling behavior?]
+[Explain how essential vs. natural BCs are handled. If there's anything tricky about the BC handling — e.g., elimination, weak imposition — explain it here.]
+
 
 ### [Section 8 — Setting up Eigensolver]
 
-[Description.] ([lines X–Y](https://github.com/mfem/mfem/blob/master/examples/ex[N]p.cpp#LX-LY)):
+[Description.] ([lines 246–302](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L246-L302)):
 
 ```cpp
 Solver * precond = NULL;
@@ -343,11 +340,13 @@ lobpcg->SetMassMatrix(*M);
 lobpcg->SetOperator(*A);
 ```
 
+[Explain the choice of solver and preconditioner. Why is this combination appropriate for this PDE? What's the expected scaling behavior?]
+
 [Explain what `Solve()` / `Mult()` does, what the return value or output is, and how the solution is post-processed if needed.]
 
-### [Section 9 — output / visualization]
+### [Section 9 — Compute eigenmodes and extract eigenvalues]
 
-[Description.] ([lines X–Y](https://github.com/mfem/mfem/blob/master/examples/ex[N]p.cpp#LX-LY)):
+[Description.] ([lines 307–310](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L307-L310)):
 
 ```cpp
 
@@ -356,6 +355,12 @@ lobpcg->SetOperator(*A);
 [Explain how the solution is written to disk and/or sent to GLVis.]
 
 [Add additional sections as needed — e.g., error computation against an exact solution, time-stepping loop, AMR loop. Use the same pattern: description → code excerpt → prose.]
+
+### [Section 10 — Save refined mesh and modes in parallel]
+
+### [Section 11 — Send solution to GLVis server]
+
+### [Section 12 — Free used memory]
 
 ---
 
@@ -424,6 +429,6 @@ mpirun -np 4 ex[N]p -m ../data/[mesh3].mesh -[other flag]
 
 ---
 
-*Based on `ex[N]p.cpp` from MFEM master branch. Line numbers refer to the master version on GitHub at the time of writing and may shift slightly in other releases.*
+*Based on `ex11p.cpp` from MFEM master branch. Line numbers refer to the master version on GitHub at the time of writing and may shift slightly in other releases.*
 
 *Annotated by Siddhant Ranka and Luis Gomez, APMA 2560, 08 May 2026.*
