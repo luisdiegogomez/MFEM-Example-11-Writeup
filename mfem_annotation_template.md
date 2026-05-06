@@ -102,7 +102,7 @@ The purpose of this example is to compute a set of the lowest eigenmodes for the
 
 ### [Section 1 — typically MPI/HYPRE init for a parallel example]
 
-[One-line description of what this block does.] ([lines X–Y](https://github.com/mfem/mfem/blob/master/examples/ex[N]p.cpp#LX-LY)):
+[One-line description of what this block does.] ([lines 61–64](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L61-L64)):
 
 ```cpp
 [code excerpt]
@@ -112,7 +112,7 @@ The purpose of this example is to compute a set of the lowest eigenmodes for the
 
 ### [Section 2 — command-line options]
 
-[Short description.] ([lines X–Y](https://github.com/mfem/mfem/blob/master/examples/ex[N]p.cpp#LX-LY)):
+[Short description.] ([lines 67–132](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L67-L132)):
 
 ```cpp
 [code excerpt]
@@ -426,4 +426,4 @@ mpirun -np 4 ex[N]p -m ../data/[mesh3].mesh -[other flag]
 
 *Based on `ex[N]p.cpp` from MFEM master branch. Line numbers refer to the master version on GitHub at the time of writing and may shift slightly in other releases.*
 
-*Annotated by [Your Name] and [Partner's Name], APMA 2560, [Date].*
+*Annotated by Siddhant Ranka and Luis Gomez, APMA 2560, 08 May 2026.*
