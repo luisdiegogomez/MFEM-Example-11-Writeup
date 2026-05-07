@@ -360,6 +360,8 @@ lobpcg->SetOperator(*A);
 
 [Save the refined mesh and the modes in parallel. This output can be viewed later using GLVis: "glvis -np <np> -m mesh -g mode".] ([lines 314–335](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L314-L335)):
 
+Define the `ostringstream`s `mesh_name` and `mode_name` 
+
 ```cpp
     {
       ostringstream mesh_name, mode_name;
@@ -434,8 +436,6 @@ lobpcg->SetOperator(*A);
 
 [Free the used memory.] ([lines 378–394](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L338-L375)):
 
----
-
 ```cpp
    delete lobpcg;
    delete precond;
@@ -455,6 +455,8 @@ lobpcg->SetOperator(*A);
    return 0;
 }
 ```
+
+---
 
 ## ☑ Sample runs
 
