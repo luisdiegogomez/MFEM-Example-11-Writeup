@@ -346,7 +346,7 @@ lobpcg->SetOperator(*A);
 [Compute the eigenmodes and extract the array of eigenvalues. Define a parallel grid function to represent each of the eigenmodes returned by the solver.] ([lines 307–310](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L307-L310)):
 
 ```cpp
-    Array<real_t> eigenvalues;
+   Array<real_t> eigenvalues;
    lobpcg->Solve();
    lobpcg->GetEigenvalues(eigenvalues);
    ParGridFunction x(fespace);
@@ -390,7 +390,7 @@ lobpcg->SetOperator(*A);
 [Send the solution by socket to a GLVis server.] ([lines 338–375](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L338-L375)):
 
 ```cpp
-    if (visualization)
+   if (visualization)
    {
       char vishost[] = "localhost";
       int  visport   = 19916;
@@ -437,7 +437,7 @@ lobpcg->SetOperator(*A);
 ---
 
 ```cpp
-    delete lobpcg;
+   delete lobpcg;
    delete precond;
    delete M;
    delete A;
