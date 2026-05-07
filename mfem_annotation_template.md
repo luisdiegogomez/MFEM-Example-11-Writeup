@@ -451,7 +451,7 @@ We convert each eigenvector from a HypreParVector to a ParaGridFunction.
 
 [Free the used memory.] ([lines 378–394](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L338-L375)):
 
----
+
 
 ```cpp
     delete lobpcg;
@@ -472,6 +472,8 @@ We convert each eigenvector from a HypreParVector to a ParaGridFunction.
    return 0;
 }
 ```
+
+---
 
 ## ☑ Sample runs
 
