@@ -99,6 +99,8 @@ The purpose of this example is to compute a set of the lowest eigenmodes for the
 
 [Initialize MPI and HYPRE.] ([lines 61–64](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L61-L64)):
 
+To start, we first initialize MPI and Hypre.
+
 ```cpp
 Mpi::Init(argc, argv);
    int num_procs = Mpi::WorldSize();
@@ -109,6 +111,8 @@ Mpi::Init(argc, argv);
 [Prose explanation: what the code does, why it's here, anything subtle.]
 
 ### [Section 2 — Parse command-line options.]
+
+The example accepts several command-line options to control mesh, polynomial order, number of eigenmodes, and solver choice:
 
 [Parse command-line options.] ([lines 67–132](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L67-L132)):
 
@@ -124,6 +128,8 @@ const char *mesh_file = "../data/star.mesh";
    bool cpardiso_solver = false;
    bool visualization = 1;
 ```
+
+The above lines set the default parameters. To allow the user to change the parameters in the command line when running, we use `args.AddOption` on each of the parameters. `OptionsParser` allows us to parse the command line arguments.
 
 [Explain what each option controls. Highlight the ones specific to this example.]
 
@@ -219,7 +225,7 @@ The number of unknowns corresponds to the size of the linear system, or in other
 
 The array `ess_bdr` identifies the boundaries that are Dirichlet. The function `MarkExternalBoundaries` takes `ess_bdr` as an input and applies the boundary conditions to all external boundaries.
 
-As mentioned previously the boundary conditions are homogenous Dirichlet. We do so 
+As mentioned previously the boundary conditions are homogenous Dirichlet. We apply homogeneous Dirichlet boundary conditions on $\partial \Omega$. `ess_br` stores the attributes of the boundary and flags the attributes corresponding to homogenous Dirichlet boundary conditions. `MarkExternalBoundaries` applies the boundary conditions on all external boundaries.
 
 We set up the parallel bilinear forms on the finite element space for _ and _. This is created using the class `ParaBilinearForm`
 ```cpp
@@ -273,6 +279,8 @@ if (pmesh->bdr_attributes.Size())
 
 [Define and configure the LOBPCG eigensolver and the BoomerAMG preconditioner for A to be used within the solver. Set the matrices which define the generalized eigenproblem A x = lambda M x.] ([lines 246–302](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L246-L302)):
 
+The example utilizes the LOBPCG eigenvalue solver to find the eigenmodes. By default, the example uses the LOBPCG solver with the BoomerAMG preconditioner in Hypre. However, the user can choose to use the eigenvalue solver with either the SuperLU, STRUMPACK, or CPardiso parallel direct solvers. The user can specify their choice of direct solver on the command line.
+
 ```cpp
 Solver * precond = NULL;
 if (!slu_solver && !sp_solver && !cpardiso_solver)
@@ -323,6 +331,9 @@ else
  
 ```
 
+In this problem, the parallel direct solvers can be used as a preconditioner for the eigensolver.
+
+This step sets up the eigensolver, initialized as a `HypreLOBPCG` eigensolver. The number of eigenmodes is specified by nev. `SetTol` sets the convergence criteria while `SetMaxIter` sets the number of iterations to be 200. `SetMassMatrix` and `SetOperator` set the $M$ and $A$ matrices to define the eigenproblem.
 
 ```cpp
 HypreLOBPCG * lobpcg = new HypreLOBPCG(MPI_COMM_WORLD);
@@ -346,11 +357,13 @@ lobpcg->SetOperator(*A);
 [Compute the eigenmodes and extract the array of eigenvalues. Define a parallel grid function to represent each of the eigenmodes returned by the solver.] ([lines 307–310](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L307-L310)):
 
 ```cpp
-   Array<real_t> eigenvalues;
+    Array<real_t> eigenvalues;
    lobpcg->Solve();
    lobpcg->GetEigenvalues(eigenvalues);
    ParGridFunction x(fespace);
 ```
+
+`Solve` computes the eigenmodes and `GetEigenvalues` extracts the eigenvalues and stores them in the array `eigenvalues`. `ParGridFunction` applied on `fespace` defines a parallel grid function to represent each eigenmode that the solver returns.
 
 [Explain how the solution is written to disk and/or sent to GLVis.]
 
@@ -360,7 +373,7 @@ lobpcg->SetOperator(*A);
 
 [Save the refined mesh and the modes in parallel. This output can be viewed later using GLVis: "glvis -np <np> -m mesh -g mode".] ([lines 314–335](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L314-L335)):
 
-Define the `ostringstream`s `mesh_name` and `mode_name` 
+Once the eigenmodes have been computed, we want to save the refined mesh and eigenmodes in parallel:
 
 ```cpp
     {
@@ -387,12 +400,14 @@ Define the `ostringstream`s `mesh_name` and `mode_name`
     }
 ```
 
+We convert each eigenvector from a HypreParVector to a ParaGridFunction.
+
 ### [Section 11 — Send solution to GLVis server]
 
 [Send the solution by socket to a GLVis server.] ([lines 338–375](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L338-L375)):
 
 ```cpp
-   if (visualization)
+    if (visualization)
    {
       char vishost[] = "localhost";
       int  visport   = 19916;
@@ -436,8 +451,10 @@ Define the `ostringstream`s `mesh_name` and `mode_name`
 
 [Free the used memory.] ([lines 378–394](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L338-L375)):
 
+---
+
 ```cpp
-   delete lobpcg;
+    delete lobpcg;
    delete precond;
    delete M;
    delete A;
@@ -455,8 +472,6 @@ Define the `ostringstream`s `mesh_name` and `mode_name`
    return 0;
 }
 ```
-
----
 
 ## ☑ Sample runs
 
@@ -487,6 +502,14 @@ mpirun -np 4 ex11p -m ../data/[mesh3].mesh -[other flag]
 > [Optional warning about a common pitfall — e.g., "Don't forget the `./` before the executable on macOS", or "This example requires GLVis to be running on port 19916 to see visualizations".]
 
 ---
+
+---
+
+MFEM puts constants in the diagonals - extremely small number
+
+- this is for eliminating dirichlet bcs
+don't want dirichlet eigenvalues to be big
+we want lowest eigenvalues
 
 ## ☑ [Optional: special section unique to this example]
 
