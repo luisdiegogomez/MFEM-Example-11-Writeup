@@ -1,4 +1,4 @@
-# 📘 Example 11: Laplacian Eigenproblem
+# 📘 Laplacian Eigenproblem
 
 `[duration]` `[difficulty: basic | intermediate | advanced]`
 
