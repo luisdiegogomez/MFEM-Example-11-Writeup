@@ -346,7 +346,10 @@ lobpcg->SetOperator(*A);
 [Compute the eigenmodes and extract the array of eigenvalues. Define a parallel grid function to represent each of the eigenmodes returned by the solver.] ([lines 307–310](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L307-L310)):
 
 ```cpp
-
+    Array<real_t> eigenvalues;
+   lobpcg->Solve();
+   lobpcg->GetEigenvalues(eigenvalues);
+   ParGridFunction x(fespace);
 ```
 
 [Explain how the solution is written to disk and/or sent to GLVis.]
@@ -357,15 +360,101 @@ lobpcg->SetOperator(*A);
 
 [Save the refined mesh and the modes in parallel. This output can be viewed later using GLVis: "glvis -np <np> -m mesh -g mode".] ([lines 314–335](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L314-L335)):
 
+```cpp
+    {
+      ostringstream mesh_name, mode_name;
+      mesh_name << "mesh." << setfill('0') << setw(6) << myid;
+    
+      ofstream mesh_ofs(mesh_name.str().c_str());
+      mesh_ofs.precision(8);
+      pmesh->Print(mesh_ofs);
+    
+      for (int i=0; i<nev; i++)
+      {
+         // convert eigenvector from HypreParVector to ParGridFunction
+         x = lobpcg->GetEigenvector(i);
+    
+         mode_name << "mode_" << setfill('0') << setw(2) << i << "."
+                   << setfill('0') << setw(6) << myid;
+    
+         ofstream mode_ofs(mode_name.str().c_str());
+         mode_ofs.precision(8);
+         x.Save(mode_ofs);
+         mode_name.str("");
+      }
+    }
+```
+
 ### [Section 11 — Send solution to GLVis server]
 
 [Send the solution by socket to a GLVis server.] ([lines 338–375](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L338-L375)):
+
+```cpp
+    if (visualization)
+   {
+      char vishost[] = "localhost";
+      int  visport   = 19916;
+      socketstream mode_sock(vishost, visport);
+      mode_sock.precision(8);
+
+      for (int i=0; i<nev; i++)
+      {
+         if ( myid == 0 )
+         {
+            cout << "Eigenmode " << i+1 << '/' << nev
+                 << ", Lambda = " << eigenvalues[i] << endl;
+         }
+
+         // convert eigenvector from HypreParVector to ParGridFunction
+         x = lobpcg->GetEigenvector(i);
+
+         mode_sock << "parallel " << num_procs << " " << myid << "\n"
+                   << "solution\n" << *pmesh << x << flush
+                   << "window_title 'Eigenmode " << i+1 << '/' << nev
+                   << ", Lambda = " << eigenvalues[i] << "'" << endl;
+
+         char c;
+         if (myid == 0)
+         {
+            cout << "press (q)uit or (c)ontinue --> " << flush;
+            cin >> c;
+         }
+         MPI_Bcast(&c, 1, MPI_CHAR, 0, MPI_COMM_WORLD);
+
+         if (c != 'c')
+         {
+            break;
+         }
+      }
+      mode_sock.close();
+   }
+```
 
 ### [Section 12 — Free used memory]
 
 [Free the used memory.] ([lines 378–394](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L338-L375)):
 
 ---
+
+```cpp
+    delete lobpcg;
+   delete precond;
+   delete M;
+   delete A;
+#if defined(MFEM_USE_SUPERLU) || defined(MFEM_USE_STRUMPACK)
+   delete Arow;
+#endif
+
+   delete fespace;
+   if (order > 0)
+   {
+      delete fec;
+   }
+   delete pmesh;
+
+   return 0;
+}
+```
 
 ## ☑ Sample runs
 
