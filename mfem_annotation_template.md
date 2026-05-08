@@ -21,7 +21,7 @@ The Laplacian Eigenproblem (also known as the Laplacian Eigenfunction) is a part
 
 $$-\Delta u = \lambda u \quad \text{in } \Omega, \tag{1}$$
 
-with homogenous dirichlet boundary conditions
+with homogeneous dirichlet boundary conditions
 
 $$u = 0 \quad \text{on } \partial\Omega.$$
 
@@ -55,7 +55,7 @@ $$\begin{cases}
 
 ### Galerkin Discretization
 
-We use galerkin reduction to approximate the analytical solution $u$ as $u_h$, where 
+We use Galerkin discretization to approximate the analytical solution $u$ as $u_h$, where 
 
 $$u_h = \sum_{i = 1}^n c_i \varphi_i, \tag{6}$$
 
@@ -206,7 +206,7 @@ The array `ess_bdr` identifies the boundaries that are Dirichlet. The function `
 
 As mentioned previously the boundary conditions are homogenous Dirichlet. We apply homogeneous Dirichlet boundary conditions on $\partial \Omega$. `ess_br` stores the attributes of the boundary and flags the attributes corresponding to homogenous Dirichlet boundary conditions. `MarkExternalBoundaries` applies the boundary conditions on all external boundaries.
 
-We set up the parallel bilinear forms on the finite element space for _ and _. This is created using the class `ParaBilinearForm`.
+We set up the parallel bilinear forms on the finite element space for the Laplacian operator and Mass. This is created using the class `ParaBilinearForm`:
 
 ```cpp
     ParBilinearForm *a = new ParBilinearForm(fespace);
@@ -419,7 +419,6 @@ We convert each eigenvector from a HypreParVector to a ParaGridFunction.
     }
 ```
 
-prints a status line
 We extract each eigenvector and send the eigenmode and mesh to GLVIS by writing it to the socket. On GLVIS, the user inputs 'c' to continue to display the next eigenmode on GLVIS.
 
 ### Free Used Memory
