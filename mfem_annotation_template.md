@@ -4,9 +4,9 @@
 
 > **✓ Lesson Objectives**
 >
-> - [Objective 1 — what the reader will understand]
-> - [Objective 2 — what the reader will be able to do]
-> - [Objective 3 — optional]
+> - Understand the Finite Element Discretization of Laplacian Eigenvalue Problem
+> - Learn How to Use the LOBPCG Eigensolver with the BoomerAMG preconditioner or a direct parallel solver to solve eigenvalue problems  
+
 
 > **ℹ Note**
 >
@@ -447,11 +447,14 @@ We convert each eigenvector from a HypreParVector to a ParaGridFunction.
    }
 ```
 
+prints a status line
+We extract each eigenvector and send the eigenmode and mesh to GLVIS by writing it to the socket. On GLVIS, the user inputs 'c' to continue to display the next eigenmode on GLVIS
+
 ### [Section 12 — Free used memory]
 
-[Free the used memory.] ([lines 378–394](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L338-L375)):
+To conclude the example, we free all used memory, including the memory taken by the eigensolver, preconditione/parallel direct solver, our $A$ and $M$ matrices, the mesh, and the finite element space ([lines 378–394](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L338-L375)):
 
-
+---
 
 ```cpp
     delete lobpcg;
@@ -473,17 +476,37 @@ We convert each eigenvector from a HypreParVector to a ParaGridFunction.
 }
 ```
 
----
-
 ## ☑ Sample runs
 
 A few representative invocations (these match the comments at the top of `ex11p.cpp`):
 
 ```bash
-mpirun -np 4 ex11p -m ../data/[mesh1].mesh
+mpirun -np 4 ex11p -m ../data/square-disc.mesh
+
+
+
 mpirun -np 4 ex11p -m ../data/[mesh2].mesh -o 2
-mpirun -np 4 ex11p -m ../data/[mesh3].mesh -[other flag]
+
+
+
+
+mpirun -np 4 ex11p -m ../data/star.mesh -slu
+mpirun -np 4 ex11p -m ../data/star.mesh -sp
+mpirun -np 4 ex11p -m ../data/star.mesh -cpardiso
+
 ```
+
+The first run line solves eigenvalue problem on the square disk mesh. 
+![square](images/Square_Disk_Mesh_Lowest.png)
+The resulting GLVIS plot corresponds to the first eigenfunction, which is the lowest eigenmode.
+
+
+The second run solves the eigenvalue problem on the toroid-wedge mesh. This time, the polynomial order is specified by user input to be 2. 
+![toroid](images/toroid_wedge.png)
+The resulting GLVIS plot corresponds to the second eigenfunction for the torus-wedge.
+
+
+The last three runs describe how the user can specify a direct parallel solver to be used as a substitute for the BoomerAMG preconditioner.
 
 [Brief description of what each sample run is testing — different mesh types, different orders, different physics regimes.]
 
