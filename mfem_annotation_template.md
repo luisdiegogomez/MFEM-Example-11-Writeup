@@ -145,7 +145,7 @@ The program uses the function `OptionsParser` to parse the command line argument
 
 [lines 137–138](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L137-L138)
 
-The code loads the computational mesh from the `mesh_file` the user inputted and then creates the corresponding object `mesh` with the MFEM class `Mesh`. 
+The code loads the computational mesh from the `mesh_file` the user inputted and then creates the corresponding object `mesh` with the MFEM class `Mesh`. Here we also 
 
 ```cpp
     Mesh *mesh = new Mesh(mesh_file, 1, 1);
@@ -217,7 +217,7 @@ We now define a parallel finite element space:
     }
 ```
 
-The number of unknowns corresponds to the size of the linear system, or in other words, the number of coefficients $c_i$ from equation.
+The number of unknowns corresponds to the size of the linear system, or in other words, the number of coefficients $c_i$ from equation (8).
 
 
 ### Parallel Bilinear Forms
@@ -478,7 +478,7 @@ mpirun -np 4 ex11p -m ../data/square-disc.mesh
 ```
 This first run line solves eigenvalue problem on the square disk mesh. 
 
-![square](images/Square_Disk_Mesh_Lowest.png)
+![square](https://github.com/luisdiegogomez/MFEM-Example-11-Writeup/tree/main/images/Square_Disk_Mesh_Lowest.png)
 
 The resulting GLVIS plot corresponds to the first eigenfunction, which is the lowest eigenmode.
 
@@ -487,7 +487,7 @@ mpirun -np 4 ex11p -m ../data/toroid-wedge.mesh -o 2
 ```
 The second run solves the eigenvalue problem on the toroid-wedge mesh. This time, the polynomial order is specified by user input to be 2. 
 
-![toroid](images/toroid_wedge.png)
+![toroid](https://github.com/luisdiegogomez/MFEM-Example-11-Writeup/tree/main/images/toroid_wedge.png)
 
 The resulting GLVIS plot corresponds to the second eigenfunction for the torus-wedge.
 
