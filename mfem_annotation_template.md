@@ -221,7 +221,7 @@ The number of unknowns corresponds to the size of the linear system, or in other
 
 [lines 190–241](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L190-L241)
 
-As mentioned previously, the boundary conditions are homogenous Dirichlet. We define an array `ess_bdr` that stores the values for the external boundary (denoted as the essential boundary). `MarkExternalBoundaries` is an MFEM function that applies the boundary conditions, for which the default is homogenous Dirichlet.
+As mentioned previously, the boundary conditions are homogenous Dirichlet. We want to track which values of the stiffness matrix correspond to the boundary conditions. As such we define an array `ess_bdr` that stores the values for the external boundary (denoted as the essential boundary). `MarkExternalBoundaries` is an MFEM function that applies the boundary conditions, for which the default is homogenous Dirichlet.
 
 ```cpp
     ConstantCoefficient one(1.0);
@@ -237,13 +237,13 @@ As mentioned previously, the boundary conditions are homogenous Dirichlet. We de
     }
 ```
 
-We first set up the bilinear form, which we define as `a`, on the finite element space for the Laplacian operator (i.e. the stiffness matrix defined in equation (10)). This is created using the MFEM class `ParaBilinearForm` since we are computing this parallel.
+We first set up the bilinear form on the finite element space for the Laplacian operator (i.e. the stiffness matrix defined in the right-hand-side of equation (10)) which we define as `a`. This is created using the MFEM class `ParaBilinearForm` since we are computing this in parallel.
 
 ```cpp
     ParBilinearForm *a = new ParBilinearForm(fespace);
 ```
 
-We find the stiffness matrix $A$ by using a diffusion integrator, MFEM function `DiffusionIntegrator`, with diffusion coefficient $Q=1$ over the domain. We add a mass term if the mesh has no boundary (which is dependent on the mesh shape selected).
+We compute the bilinear form `a` by using a diffusion integrator, MFEM function `DiffusionIntegrator`, with diffusion coefficient $Q=1$ over the domain. We add a mass term if the mesh has no boundary, which is dependent on the mesh shape selected.
 
 ```cpp
     a->AddDomainIntegrator(new DiffusionIntegrator(one));
@@ -255,7 +255,7 @@ We find the stiffness matrix $A$ by using a diffusion integrator, MFEM function 
     }
 ```
 
-We then assemble the stiffness matrix, and set all the diagonal values of this stiffness matrix to 1 so that the eiginvalues correspoding to the Dirichlet boundary conditions are not selected as the eigenvalues of interest.
+We then assemble the stiffness matrix. As mentioned previously, the goal is to find the lowest eigenmodes. However we do not want the eigenvalues and eigenfunctions that correspond to the Dirichlet boundaries to be a part of the solution set. Therefore, we shift the Dirichlet eigenvalues out of the computational range. We set these values, identified by `ess_bdr`, equal to 1. We then finalize the stiffness matrix $A$.
 
 ```cpp
     a->Assemble();
@@ -263,7 +263,7 @@ We then assemble the stiffness matrix, and set all the diagonal values of this s
     a->Finalize();
 ```
 
-We then set up the parllel bilinear form for the mass matrx $M$ (as defined in equation (11)) by using the MFEM mass integration function `MassIntegrator` and we input `one` into the function to signifiy the mass matrix is unweighted.
+We then set up the parallel bilinear form for the mass matrx $M$ (as defined in the right-hand side of equation (11)), which we define as `m`. We use the MFEM mass integration function `MassIntegrator` and we input `one` into the function to signify the mass matrix is unweighted.
 
 ```cpp
     ParBilinearForm *m = new ParBilinearForm(fespace);
@@ -271,13 +271,15 @@ We then set up the parllel bilinear form for the mass matrx $M$ (as defined in e
     m->Assemble();
 ```
 
-As mentioned previously, the goal is to find the lowest eigenmodes. However we do not want our eigenvalues to correspond to the Dirichlet boundaries. Therefore, we shift the Dirichlet eigenvalues out of the computational range. This means for matrix $A$ we set the entries along the diagonal equal to 1. For matrix $M$ we set the entries on the diagonal to the minimal numerical limits.
+For bilinear form `m`, we similarly change the eigenvalues corresponding to the degrees of freedom on the boundary and set them equal to the minimal numerical limits.
 
 ```cpp
     // shift the eigenvalue corresponding to eliminated dofs to a large value
     m->EliminateEssentialBCDiag(ess_bdr, numeric_limits<real_t>::min());
     m->Finalize();
 ```
+
+We finally set the matrices $A$ and $M$ to the output of these bilinear forms.
 
 ```cpp
     HypreParMatrix *A = a->ParallelAssemble();
@@ -339,9 +341,9 @@ The example utilizes the LOBPCG eigenvalue solver to find the eigenmodes. By def
     }
 ```
 
-In this problem, the parallel direct solvers can be used as a preconditioner for the eigensolver.
+In this problem, the parallel direct solvers can be used to calculate the preconditioner for the eigensolver. The preconditioner is an approximation of the inverse of the stiffnes matrix, which when found can aid in the convergnece of the solution.
 
-This step sets up the eigensolver, initialized as a `HypreLOBPCG` eigensolver. The number of eigenmodes is specified by nev. `SetTol` sets the convergence criteria while `SetMaxIter` sets the number of iterations to be 200. `SetMassMatrix` and `SetOperator` set the $M$ and $A$ matrices to define the eigenproblem.
+This step sets up the eigensolver, initialized as a `HypreLOBPCG` eigensolver to solve the number of eigenmodes specified by `nev`. `SetTol` sets the convergence criteria while `SetMaxIter` sets the number of iterations to be 200. `SetMassMatrix` and `SetOperator` set the $M$ and $A$ matrices to define the eigenproblem.
 
 ```cpp
     HypreLOBPCG * lobpcg = new HypreLOBPCG(MPI_COMM_WORLD);
@@ -360,6 +362,8 @@ This step sets up the eigensolver, initialized as a `HypreLOBPCG` eigensolver. T
 
 [lines 307–310](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L307-L310)
 
+`Solve` computes the eigenmodes and `GetEigenvalues` extracts the eigenvalues and stores them in the array `eigenvalues`. `ParGridFunction` applied on `fespace` defines a parallel grid function to represent each eigenmode that the solver returns.
+
 ```cpp
     Array<real_t> eigenvalues;
     lobpcg->Solve();
@@ -367,13 +371,11 @@ This step sets up the eigensolver, initialized as a `HypreLOBPCG` eigensolver. T
     ParGridFunction x(fespace);
 ```
 
-`Solve` computes the eigenmodes and `GetEigenvalues` extracts the eigenvalues and stores them in the array `eigenvalues`. `ParGridFunction` applied on `fespace` defines a parallel grid function to represent each eigenmode that the solver returns.
-
 ### Save Refined Mesh and Modes in Parallel
 
 [lines 314–335](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L314-L335)
 
-Once the eigenmodes have been computed, we want to save the refined mesh and eigenmodes in parallel:
+Once the eigenmodes have been computed, we want to save the refined mesh and eigenmodes in parallel.
 
 ```cpp
     {
@@ -400,11 +402,13 @@ Once the eigenmodes have been computed, we want to save the refined mesh and eig
     }
 ```
 
-We convert each eigenvector from a HypreParVector to a ParaGridFunction.
+We convert each eigenvector from a `HypreParVector` to a `ParaGridFunction`.
 
 ### Send Solution to GLVis Server
 
 [lines 338–375](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L338-L375)
+
+If the user specified wanting a visualization, we extract and send the eigenmodes and mesh to GLVis by writing it to the socket. On GLVis, the user inputs 'c' to continue to display the next eigenmode on GLVis.
 
 ```cpp
     if (visualization)
@@ -447,8 +451,6 @@ We convert each eigenvector from a HypreParVector to a ParaGridFunction.
     }
 ```
 
-We extract each eigenvector and send the eigenmode and mesh to GLVIS by writing it to the socket. On GLVIS, the user inputs 'c' to continue to display the next eigenmode on GLVIS.
-
 ### Free Used Memory
 
 [lines 378–394](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L338-L375)
@@ -479,37 +481,34 @@ To conclude the example, we free all used memory, including the memory used by t
 
 ## ☑ Sample runs
 
-A few representative invocations (these match the comments at the top of `ex11p.cpp`):
+The following are a few representative sample runs as written at the top of `ex11p.cpp`):
 
 ```bash
 mpirun -np 4 ex11p -m ../data/square-disc.mesh
 ```
-This first run line solves eigenvalue problem on the square disk mesh. 
+This first run line solves eigenvalue problem on the square disk mesh ([line 5](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L5)). 
 
 ![square](images/Square_Disk_Mesh_Lowest.png)
 
-The resulting GLVIS plot corresponds to the first eigenfunction, which is the lowest eigenmode.
+The resulting GLVis plot corresponds to the first eigenmodes, which corresponds tp the lowest eigenvalue.
 
 ```bash
 mpirun -np 4 ex11p -m ../data/toroid-wedge.mesh -o 2
 ```
-The second run solves the eigenvalue problem on the toroid-wedge mesh. This time, the polynomial order is specified by user input to be 2. 
+The second run solves the eigenvalue problem on the toroid-wedge mesh. This time, the polynomial order is specified by user input to be 2 ([line 13](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L13)). 
 
 ![toroid](images/toroid_wedge.png)
 
-The resulting GLVIS plot corresponds to the second eigenfunction for the torus-wedge.
+The resulting GLVis plot corresponds to the second eigenmode for the torus-wedge.
 
-Although by default the example uses the LOBPCG Eigensolver with the BoomerAMG preconditioner, there are three direct parallel solvers that can be specifed to used instead, as seen in the following three runs:
+The following sample runs use do not use the default BoomerAMG preconditioner.
 
 ```bash
 mpirun -np 4 ex11p -m ../data/star.mesh -slu
 mpirun -np 4 ex11p -m ../data/star.mesh -sp
 mpirun -np 4 ex11p -m ../data/star.mesh -cpardiso
 ```
-As mentioned in the first section, the three solvers being specified here are SuperLU, STRUMPACK, and CPardiso. However, the solvers' corresponding libraries must also be compiled. 
-
----
-
+As mentioned in the **Parse Command-line Options** section, the three solvers being specified here are SuperLU, STRUMPACK, and CPardiso. However, the solvers' corresponding libraries must also be compiled. 
 
 ---
 
