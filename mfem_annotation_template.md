@@ -487,7 +487,7 @@ mpirun -np 4 ex11p -m ../data/toroid-wedge.mesh -o 2
 ```
 The second run solves the eigenvalue problem on the toroid-wedge mesh. This time, the polynomial order is specified by user input to be 2. 
 
-![toroid](https://github.com/luisdiegogomez/MFEM-Example-11-Writeup/tree/main/images/toroid_wedge.png)
+![toroid](images/toroid_wedge.png)
 
 The resulting GLVIS plot corresponds to the second eigenfunction for the torus-wedge.
 
