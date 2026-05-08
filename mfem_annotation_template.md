@@ -1,6 +1,8 @@
 # 📘 Laplacian Eigenproblem
 
-`[duration]` `[difficulty: basic | intermediate | advanced]`
+*Annotated by Siddhant Ranka and Luis Gomez, APMA 2560, 08 May 2026.*
+
+`45 minutes` `intermediate`
 
 > **✓ Lesson Objectives**
 >
@@ -10,8 +12,7 @@
 
 > **ℹ Note**
 >
-> Please complete the [Finite Element Basics](https://mfem.org/tutorial/fem/) lesson on `ex1.cpp` before this one. [Add any other prerequisite examples here, e.g., "We also recommend viewing Example N before this one."]
-
+> Please complete the [Finite Element Basics](https://mfem.org/tutorial/fem/) lesson on `ex1.cpp` before this one.
 ---
 
 ## ☑ Laplacian Eigenproblem
@@ -500,5 +501,3 @@ we want lowest eigenvalues
 ---
 
 *Based on `ex11p.cpp` from MFEM master branch. Line numbers refer to the master version on GitHub at the time of writing and may shift slightly in other releases.*
-
-*Annotated by Siddhant Ranka and Luis Gomez, APMA 2560, 08 May 2026.*
