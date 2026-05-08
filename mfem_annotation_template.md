@@ -93,10 +93,10 @@ The purpose of this example is to compute a set of the lowest eigenmodes for the
 Since the example is only run in parallel, which is due to the large amount of memory used to run the example, we begin by initializing MPI (a standardized API used to write parallel programs) and HYPRE (an open-source library designed for solving large sparse linear systems of equations through parallel computing).
 
 ```cpp
-Mpi::Init(argc, argv);
-   int num_procs = Mpi::WorldSize();
-   int myid = Mpi::WorldRank();
-   Hypre::Init();
+    Mpi::Init(argc, argv);
+    int num_procs = Mpi::WorldSize();
+    int myid = Mpi::WorldRank();
+    Hypre::Init();
 ```
 
 ### Parse Command-line Options
@@ -106,16 +106,16 @@ Mpi::Init(argc, argv);
 The example accepts several command-line options to control mesh, polynomial order, number of eigenmodes, and solver choice:
 
 ```cpp
-const char *mesh_file = "../data/star.mesh";
-   int ser_ref_levels = 2;
-   int par_ref_levels = 1;
-   int order = 1;
-   int nev = 5;
-   int seed = 75;
-   bool slu_solver  = false;
-   bool sp_solver = false;
-   bool cpardiso_solver = false;
-   bool visualization = 1;
+    const char *mesh_file = "../data/star.mesh";
+    int ser_ref_levels = 2;
+    int par_ref_levels = 1;
+    int order = 1;
+    int nev = 5;
+    int seed = 75;
+    bool slu_solver  = false;
+    bool sp_solver = false;
+    bool cpardiso_solver = false;
+    bool visualization = 1;
 ```
 
 The above lines set the default parameters. To allow the user to change the parameters in the command line when running, we use `args.AddOption` on each of the parameters. `OptionsParser` allows us to parse the command line arguments.
@@ -127,8 +127,8 @@ The above lines set the default parameters. To allow the user to change the para
 The code loads the computational mesh from the file the user inputted, and then, creates the class `Mesh` and the corresponding object `mesh`. 
 
 ```cpp
-Mesh *mesh = new Mesh(mesh_file, 1, 1);
-int dim = mesh->Dimension();
+    Mesh *mesh = new Mesh(mesh_file, 1, 1);
+    int dim = mesh->Dimension();
 ```
 
 ### Refine the Serial Mesh
@@ -138,10 +138,10 @@ int dim = mesh->Dimension();
 The mesh is then refined uniformly on all processors. The number of refinement levels is $2$ by default but can be changed via user input.
 
 ```cpp
-for (int lev = 0; lev < ser_ref_levels; lev++)
-   {
-      mesh->UniformRefinement();
-   }
+    for (int lev = 0; lev < ser_ref_levels; lev++)
+    {
+        mesh->UniformRefinement();
+    }
 ```
 
 ### Define Parallel Mesh
@@ -151,12 +151,12 @@ for (int lev = 0; lev < ser_ref_levels; lev++)
 We now want to create a new parallel mesh. The next three lines create the parallel mesh by partitioning the serial mesh and refining further to increase the resolution. The additional refinement level, `par_ref_levels`, is set to $1$ by default but can be modified via user input.
 
 ```cpp
-ParMesh *pmesh = new ParMesh(MPI_COMM_WORLD, *mesh);
-delete mesh;
-for (int lev = 0; lev < par_ref_levels; lev++)
-{
-    pmesh->UniformRefinement();
-}
+    ParMesh *pmesh = new ParMesh(MPI_COMM_WORLD, *mesh);
+    delete mesh;
+    for (int lev = 0; lev < par_ref_levels; lev++)
+    {
+        pmesh->UniformRefinement();
+    }
 ```
 Once we create our parallel mesh we are free to delete the serial mesh.
 
@@ -169,34 +169,30 @@ We now construct a finite element space using piecewise polynomial basis functio
 We create `FiniteElementCollection` object `fec`. If we have not already set the `fec` previously, we set the space to be the $H^1$ space on the given domain and `order` corresponds to the polynomial degree. If the user does not input an order value, `order` is set to 1.
 
 ```cpp
-FiniteElementCollection *fec;
-if (order > 0)
-{
-    fec = new H1_FECollection(order, dim);
-}
-else if (pmesh->GetNodes())
-{
-    fec = pmesh->GetNodes()->OwnFEC();
-}
-else
-{
-    fec = new H1_FECollection(order = 1, dim);
-}
-
-[code excerpt]
-
+    FiniteElementCollection *fec;
+    if (order > 0)
+    {
+        fec = new H1_FECollection(order, dim);
+    }
+    else if (pmesh->GetNodes())
+    {
+        fec = pmesh->GetNodes()->OwnFEC();
+    }
+    else
+    {
+        fec = new H1_FECollection(order = 1, dim);
+    }
 ```
 
 We now define a parallel finite element space:
 
 ```cpp
-
-ParFiniteElementSpace *fespace = new ParFiniteElementSpace(pmesh, fec);
-HYPRE_BigInt size = fespace->GlobalTrueVSize();
-if (myid == 0)
-{
-    cout << "Number of unknowns: " << size << endl;
-}
+    ParFiniteElementSpace *fespace = new ParFiniteElementSpace(pmesh, fec);
+    HYPRE_BigInt size = fespace->GlobalTrueVSize();
+    if (myid == 0)
+    {
+        cout << "Number of unknowns: " << size << endl;
+    }
 ```
 
 The number of unknowns corresponds to the size of the linear system, or in other words, the number of coefficients $c_i$ from equation.
@@ -213,16 +209,17 @@ As mentioned previously the boundary conditions are homogenous Dirichlet. We app
 We set up the parallel bilinear forms on the finite element space for _ and _. This is created using the class `ParaBilinearForm`.
 
 ```cpp
-ParBilinearForm *a = new ParBilinearForm(fespace);
-a->AddDomainIntegrator(new DiffusionIntegrator(one));
-if (pmesh->bdr_attributes.Size() == 0)
-{
-   
-    a->AddDomainIntegrator(new MassIntegrator(one));
-}
-a->Assemble();
-a->EliminateEssentialBCDiag(ess_bdr, 1.0);
-a->Finalize();
+    ParBilinearForm *a = new ParBilinearForm(fespace);
+    a->AddDomainIntegrator(new DiffusionIntegrator(one));
+    if (pmesh->bdr_attributes.Size() == 0)
+    {
+        // Add a mass term if the mesh has no boundary, e.g. periodic mesh or
+        // closed surface.
+        a->AddDomainIntegrator(new MassIntegrator(one));
+    }
+    a->Assemble();
+    a->EliminateEssentialBCDiag(ess_bdr, 1.0);
+    a->Finalize();
 ```
 
 We find the stiffness matrix $A$ by using a diffusion integrator, `DiffusionIntegrator`, over the domain. We add a mass term if the mesh has no boundary.
@@ -230,32 +227,33 @@ We find the stiffness matrix $A$ by using a diffusion integrator, `DiffusionInte
 We find the mass matrx $M$ by using the mass integrator `MassIntegrator`.
 
 ```cpp
-ParBilinearForm *m = new ParBilinearForm(fespace);
-m->AddDomainIntegrator(new MassIntegrator(one));
-m->Assemble();
-// shift the eigenvalue corresponding to eliminated dofs to a large value
-m->EliminateEssentialBCDiag(ess_bdr, numeric_limits<real_t>::min());
-m->Finalize();
+    ParBilinearForm *m = new ParBilinearForm(fespace);
+    m->AddDomainIntegrator(new MassIntegrator(one));
+    m->Assemble();
+    // shift the eigenvalue corresponding to eliminated dofs to a large value
+    m->EliminateEssentialBCDiag(ess_bdr, numeric_limits<real_t>::min());
+    m->Finalize();
 ```
 
 The eigenvalues are shifted because.....(fill in this part!!!!)
 
 ```cpp
-HypreParMatrix *A = a->ParallelAssemble();
-HypreParMatrix *M = m->ParallelAssemble();
+    HypreParMatrix *A = a->ParallelAssemble();
+    HypreParMatrix *M = m->ParallelAssemble();
 ```
 
 ```cpp
-ConstantCoefficient one(1.0);
-Array<int> ess_bdr;
-if (pmesh->bdr_attributes.Size())
-{
-    ess_bdr.SetSize(pmesh->bdr_attributes.Max());
-    ess_bdr = 0;
-
-    pmesh->MarkExternalBoundaries(ess_bdr);
- 
-}
+    ConstantCoefficient one(1.0);
+    Array<int> ess_bdr;
+    if (pmesh->bdr_attributes.Size())
+    {
+        ess_bdr.SetSize(pmesh->bdr_attributes.Max());
+        ess_bdr = 0;
+        // Apply boundary conditions on all external boundaries:
+        pmesh->MarkExternalBoundaries(ess_bdr);
+        // Boundary conditions can also be applied based on named attributes:
+        // pmesh->MarkNamedBoundaries(set_name, ess_bdr)
+    }
 ```
 
 ### Setting Up Eigensolver
@@ -265,15 +263,15 @@ if (pmesh->bdr_attributes.Size())
 The example utilizes the LOBPCG eigenvalue solver to find the eigenmodes. By default, the example uses the LOBPCG solver with the BoomerAMG preconditioner in Hypre. However, the user can choose to use the eigenvalue solver with either the SuperLU, STRUMPACK, or CPardiso parallel direct solvers. The user can specify their choice of direct solver on the command line.
 
 ```cpp
-Solver * precond = NULL;
-if (!slu_solver && !sp_solver && !cpardiso_solver)
-{
-    HypreBoomerAMG * amg = new HypreBoomerAMG(*A);
-    amg->SetPrintLevel(0);
-    precond = amg;
-}
-else
-{
+    Solver * precond = NULL;
+    if (!slu_solver && !sp_solver && !cpardiso_solver)
+    {
+        HypreBoomerAMG * amg = new HypreBoomerAMG(*A);
+        amg->SetPrintLevel(0);
+        precond = amg;
+    }
+    else
+    {
 #ifdef MFEM_USE_SUPERLU
     if (slu_solver)
     {
@@ -310,8 +308,7 @@ else
         precond = cpardiso;
     }
 #endif
-}
- 
+    }
 ```
 
 In this problem, the parallel direct solvers can be used as a preconditioner for the eigensolver.
@@ -319,16 +316,16 @@ In this problem, the parallel direct solvers can be used as a preconditioner for
 This step sets up the eigensolver, initialized as a `HypreLOBPCG` eigensolver. The number of eigenmodes is specified by nev. `SetTol` sets the convergence criteria while `SetMaxIter` sets the number of iterations to be 200. `SetMassMatrix` and `SetOperator` set the $M$ and $A$ matrices to define the eigenproblem.
 
 ```cpp
-HypreLOBPCG * lobpcg = new HypreLOBPCG(MPI_COMM_WORLD);
-lobpcg->SetNumModes(nev);
-lobpcg->SetRandomSeed(seed);
-lobpcg->SetPreconditioner(*precond);
-lobpcg->SetMaxIter(200);
-lobpcg->SetTol(1e-8);
-lobpcg->SetPrecondUsageMode(1);
-lobpcg->SetPrintLevel(1);
-lobpcg->SetMassMatrix(*M);
-lobpcg->SetOperator(*A);
+    HypreLOBPCG * lobpcg = new HypreLOBPCG(MPI_COMM_WORLD);
+    lobpcg->SetNumModes(nev);
+    lobpcg->SetRandomSeed(seed);
+    lobpcg->SetPreconditioner(*precond);
+    lobpcg->SetMaxIter(200);
+    lobpcg->SetTol(1e-8);
+    lobpcg->SetPrecondUsageMode(1);
+    lobpcg->SetPrintLevel(1);
+    lobpcg->SetMassMatrix(*M);
+    lobpcg->SetOperator(*A);
 ```
 
 ### Compute Eigenmodes and Extract Eigenvalues
@@ -337,9 +334,9 @@ lobpcg->SetOperator(*A);
 
 ```cpp
     Array<real_t> eigenvalues;
-   lobpcg->Solve();
-   lobpcg->GetEigenvalues(eigenvalues);
-   ParGridFunction x(fespace);
+    lobpcg->Solve();
+    lobpcg->GetEigenvalues(eigenvalues);
+    ParGridFunction x(fespace);
 ```
 
 `Solve` computes the eigenmodes and `GetEigenvalues` extracts the eigenvalues and stores them in the array `eigenvalues`. `ParGridFunction` applied on `fespace` defines a parallel grid function to represent each eigenmode that the solver returns.
@@ -352,26 +349,26 @@ Once the eigenmodes have been computed, we want to save the refined mesh and eig
 
 ```cpp
     {
-      ostringstream mesh_name, mode_name;
-      mesh_name << "mesh." << setfill('0') << setw(6) << myid;
-    
-      ofstream mesh_ofs(mesh_name.str().c_str());
-      mesh_ofs.precision(8);
-      pmesh->Print(mesh_ofs);
-    
-      for (int i=0; i<nev; i++)
-      {
-         // convert eigenvector from HypreParVector to ParGridFunction
-         x = lobpcg->GetEigenvector(i);
-    
-         mode_name << "mode_" << setfill('0') << setw(2) << i << "."
+        ostringstream mesh_name, mode_name;
+        mesh_name << "mesh." << setfill('0') << setw(6) << myid;
+
+        ofstream mesh_ofs(mesh_name.str().c_str());
+        mesh_ofs.precision(8);
+        pmesh->Print(mesh_ofs);
+
+        for (int i=0; i<nev; i++)
+        {
+            // convert eigenvector from HypreParVector to ParGridFunction
+            x = lobpcg->GetEigenvector(i);
+            
+            mode_name << "mode_" << setfill('0') << setw(2) << i << "."
                    << setfill('0') << setw(6) << myid;
-    
-         ofstream mode_ofs(mode_name.str().c_str());
-         mode_ofs.precision(8);
-         x.Save(mode_ofs);
-         mode_name.str("");
-      }
+            
+            ofstream mode_ofs(mode_name.str().c_str());
+            mode_ofs.precision(8);
+            x.Save(mode_ofs);
+            mode_name.str("");
+        }
     }
 ```
 
@@ -383,43 +380,43 @@ We convert each eigenvector from a HypreParVector to a ParaGridFunction.
 
 ```cpp
     if (visualization)
-   {
-      char vishost[] = "localhost";
-      int  visport   = 19916;
-      socketstream mode_sock(vishost, visport);
-      mode_sock.precision(8);
-
-      for (int i=0; i<nev; i++)
-      {
-         if ( myid == 0 )
-         {
-            cout << "Eigenmode " << i+1 << '/' << nev
-                 << ", Lambda = " << eigenvalues[i] << endl;
-         }
-
-         // convert eigenvector from HypreParVector to ParGridFunction
-         x = lobpcg->GetEigenvector(i);
-
-         mode_sock << "parallel " << num_procs << " " << myid << "\n"
-                   << "solution\n" << *pmesh << x << flush
-                   << "window_title 'Eigenmode " << i+1 << '/' << nev
-                   << ", Lambda = " << eigenvalues[i] << "'" << endl;
-
-         char c;
-         if (myid == 0)
-         {
-            cout << "press (q)uit or (c)ontinue --> " << flush;
-            cin >> c;
-         }
-         MPI_Bcast(&c, 1, MPI_CHAR, 0, MPI_COMM_WORLD);
-
-         if (c != 'c')
-         {
-            break;
-         }
-      }
-      mode_sock.close();
-   }
+    {
+        char vishost[] = "localhost";
+        int  visport   = 19916;
+        socketstream mode_sock(vishost, visport);
+        mode_sock.precision(8);
+        
+        for (int i=0; i<nev; i++)
+        {
+            if ( myid == 0 )
+            {
+                cout << "Eigenmode " << i+1 << '/' << nev
+                << ", Lambda = " << eigenvalues[i] << endl;
+            }
+    
+            // convert eigenvector from HypreParVector to ParGridFunction
+            x = lobpcg->GetEigenvector(i);
+    
+            mode_sock << "parallel " << num_procs << " " << myid << "\n"
+                      << "solution\n" << *pmesh << x << flush
+                      << "window_title 'Eigenmode " << i+1 << '/' << nev
+                      << ", Lambda = " << eigenvalues[i] << "'" << endl;
+    
+            char c;
+            if (myid == 0)
+            {
+                cout << "press (q)uit or (c)ontinue --> " << flush;
+                cin >> c;
+            }
+            MPI_Bcast(&c, 1, MPI_CHAR, 0, MPI_COMM_WORLD);
+    
+            if (c != 'c')
+            {
+                break;
+            }
+        }
+        mode_sock.close();
+    }
 ```
 
 prints a status line
@@ -432,22 +429,22 @@ We extract each eigenvector and send the eigenmode and mesh to GLVIS by writing 
 To conclude the example, we free all used memory, including the memory used by the eigensolver `lobpcg`, preconditione/parallel direct solver `precond`, our $A$ and $M$ matrices, the finite element space `fespace`/`fec`, and the mesh `pmesh`.
 
 ```cpp
-   delete lobpcg;
-   delete precond;
-   delete M;
-   delete A;
+    delete lobpcg;
+    delete precond;
+    delete M;
+    delete A;
 #if defined(MFEM_USE_SUPERLU) || defined(MFEM_USE_STRUMPACK)
-   delete Arow;
+    delete Arow;
 #endif
 
-   delete fespace;
-   if (order > 0)
-   {
+    delete fespace;
+    if (order > 0)
+    {
       delete fec;
-   }
-   delete pmesh;
-
-   return 0;
+    }
+    delete pmesh;
+    
+    return 0;
 }
 ```
 
@@ -475,13 +472,14 @@ The second run solves the eigenvalue problem on the toroid-wedge mesh. This time
 
 The resulting GLVIS plot corresponds to the second eigenfunction for the torus-wedge.
 
+Although by default the example uses the LOBPCG Eigensolver with the BoomerAMG preconditioner, there are three direct parallel solvers that can be specifed to used instead as seen in the following three runs:
+
 ```bash
 mpirun -np 4 ex11p -m ../data/star.mesh -slu
 mpirun -np 4 ex11p -m ../data/star.mesh -sp
 mpirun -np 4 ex11p -m ../data/star.mesh -cpardiso
 ```
-
-The last three runs describe how the user can specify a direct parallel solver to be used as a substitute for the BoomerAMG preconditioner.
+As mentioned in the first section, the three solvers being specified here are SuperLU, STRUMPACK, and CPardiso. However, the solvers' corresponding libraries must also be compiled. 
 
 ---
 
