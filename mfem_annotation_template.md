@@ -31,7 +31,7 @@ Where $\Omega$ is a bounded domain of general shape $\Omega\subset\mathbb{R}^d$.
 
 To solve the PDE, we first derive the weak form. To do so, we multiply the PDE by a test function $v \in H^1_0(\Omega)$, which gives us 
 
-$$-\Delta u v = \lambda u v\quad \text{in } \Omega, \qquad u = 0 \quad \text{on } \partial\Omega.$$
+$$(-\Delta u) v = \lambda (u) v\quad \text{in } \Omega, \qquad u = 0 \quad \text{on } \partial\Omega.$$
 
 We then integrate both sides over $\Omega$:
 
@@ -253,6 +253,8 @@ m->Assemble();
 m->EliminateEssentialBCDiag(ess_bdr, numeric_limits<real_t>::min());
 m->Finalize();
 ```
+
+The eigenvalues are shifted because.....(fill in this part!!!!)
 
 ```cpp
 HypreParMatrix *A = a->ParallelAssemble();
