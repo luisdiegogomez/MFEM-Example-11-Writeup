@@ -87,19 +87,17 @@ $$\textbf{x}_i = c_i.$$
 
 ## ☑ Annotated Example 11
 
-MFEM's Example 11 implements the above formulation in the source file [`examples/ex11p.cpp`](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp). [State whether the example has a serial version, a parallel version, or both, and which you're annotating.]
-
-[One-paragraph summary of what the example does end-to-end: e.g., "We compute the lowest `nev` eigenpairs on a mesh provided as input."]
+MFEM's Example 11 implements the above formulation in the source file [`examples/ex11p.cpp`](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp).
 
 Below we highlight selected portions of the example code and connect them with the description in the previous section. You can follow along by browsing [`ex11p.cpp`](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp) in your editor.
 
 The purpose of this example is to compute a set of the lowest eigenmodes for the referred eigenproblem. This example is only run in parallel.
 
-### [Section 1 — typically MPI/HYPRE init for a parallel example]
+### Section 1 — Initialize MPI and HYPRE for a Parallel Computing
 
-[Initialize MPI and HYPRE.] ([lines 61–64](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L61-L64)):
+([lines 61–64](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L61-L64)):
 
-To start, we first initialize MPI and Hypre.
+To start, we first initialize MPI (a standardized library specification used to write parallel programs) and HYPRE (an open-source library designed for solving large sparse linear systems of equations through parallel computing).
 
 ```cpp
 Mpi::Init(argc, argv);
@@ -107,8 +105,6 @@ Mpi::Init(argc, argv);
    int myid = Mpi::WorldRank();
    Hypre::Init();
 ```
-
-[Prose explanation: what the code does, why it's here, anything subtle.]
 
 ### [Section 2 — Parse command-line options.]
 
