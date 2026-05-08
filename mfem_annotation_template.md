@@ -32,7 +32,7 @@ Where $\Omega$ is a bounded domain of general shape $\Omega\subset\mathbb{R}^d$.
 
 To solve the PDE, we first derive the weak form. To do so, we multiply the PDE by a test function $v \in H^1_0(\Omega)$, which gives us 
 
-$$(-\Delta u) v = \lambda (u) v\quad \text{in } \Omega, \qquad u = 0 \quad \text{on } \partial\Omega. \tag{2}$$
+$$(-\Delta u) v = \lambda u v\quad \text{in } \Omega, \qquad u = 0 \quad \text{on } \partial\Omega. \tag{2}$$
 
 We then integrate both sides over $\Omega$:
 
@@ -84,7 +84,7 @@ MFEM's Example 11 implements the above formulation in the source file [`examples
 
 Below we highlight selected portions of the example code and connect them with the description in the previous section. You can follow along by browsing [`ex11p.cpp`](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp) in your editor.
 
-The purpose of this example is to compute a set of the lowest eigenmodes for the referred eigenproblem. This example is only run in parallel.
+The purpose of this example is to compute a set of the lowest eigenmodes for the referred eigenproblem. This example can only be run in parallel.
 
 ### Initialize MPI and HYPRE for a Parallel Computing
 
