@@ -478,7 +478,7 @@ mpirun -np 4 ex11p -m ../data/square-disc.mesh
 ```
 This first run line solves eigenvalue problem on the square disk mesh. 
 
-![square](https://github.com/luisdiegogomez/MFEM-Example-11-Writeup/tree/main/images/Square_Disk_Mesh_Lowest.png)
+![square](images/Square_Disk_Mesh_Lowest.png)
 
 The resulting GLVIS plot corresponds to the first eigenfunction, which is the lowest eigenmode.
 
