@@ -146,7 +146,7 @@ The program uses the function `OptionsParser` to parse the command line argument
 
 [lines 137–138](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L137-L138)
 
-The code loads the computational mesh from the `mesh_file` the user inputted and then creates the corresponding object `mesh` with the MFEM class `Mesh`. Here we also 
+The code loads the computational mesh from the `mesh_file` the user inputted and then creates the corresponding object `mesh` with the MFEM class `Mesh`. 
 
 ```cpp
     Mesh *mesh = new Mesh(mesh_file, 1, 1);
@@ -406,7 +406,7 @@ Once the eigenmodes have been computed, we want to save the refined mesh and eig
     }
 ```
 
-We convert each eigenvector from a `HypreParVector` to a `ParaGridFunction`.
+We convert each eigenvector from a `HypreParVector` to a `ParaGridFunction` in order to represent the solution as a finite element solution instead of just as a vector.
 
 ### Send Solution to GLVis Server
 
@@ -492,7 +492,10 @@ mpirun -np 4 ex11p -m ../data/square-disc.mesh
 ```
 This first run line solves eigenvalue problem on the square disk mesh ([line 5](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L5)). 
 
-![square](images/Square_Disk_Mesh_Lowest.png)
+<div align="center">
+    ![square](https://github.com/luisdiegogomez/MFEM-Example-11-Writeup/blob/main/images/Square_Disk_Mesh_Lowest.png)
+</div>
+
 
 The resulting GLVis plot corresponds to the first eigenmodes, which corresponds tp the lowest eigenvalue.
 
@@ -501,7 +504,9 @@ mpirun -np 4 ex11p -m ../data/toroid-wedge.mesh -o 2
 ```
 The second run solves the eigenvalue problem on the toroid-wedge mesh. This time, the polynomial order is specified by user input to be 2 ([line 13](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L13)). 
 
-![toroid](images/toroid_wedge.png)
+<div align="center">
+    ![toroid](https://github.com/luisdiegogomez/MFEM-Example-11-Writeup/blob/main/images/toroid_wedge.png)
+</div>
 
 The resulting GLVis plot corresponds to the second eigenmode for the torus-wedge.
 
