@@ -136,13 +136,15 @@ Finally,
     bool visualization = 1;
 ```
 
-The above lines set the default parameters. To allow the user to change the parameters in the command line when running, we use `args.AddOption` on each of the parameters. `OptionsParser` allows us to parse the command line arguments.
+The above lines (([lines 67-76](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L67-L76)) are the default values for the parameters. 
+
+The program uses the function `OptionsParser` to parse the command line arguments, uses `args.AddOption` on each of the parameters to change to any specfied values, and has built-in warnings for incompatible specifications such as choosing two solvers ([lines 78-132](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L78-L132).
 
 ### Mesh Construction
 
 [lines 137–138](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L137-L138)
 
-The code loads the computational mesh from the file the user inputted, and then, creates the class `Mesh` and the corresponding object `mesh`. 
+The code loads the computational mesh from the `mesh_file` the user inputted, and then, creates the class `Mesh` and the corresponding object `mesh`. 
 
 ```cpp
     Mesh *mesh = new Mesh(mesh_file, 1, 1);
@@ -153,7 +155,7 @@ The code loads the computational mesh from the file the user inputted, and then,
 
 [lines 143–146](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#LX143-L146)
 
-The mesh is then refined uniformly on all processors. The number of refinement levels is $2$ by default but can be changed via user input.
+The mesh is then refined uniformly to the specfied `ser_ref_levels` value.
 
 ```cpp
     for (int lev = 0; lev < ser_ref_levels; lev++)
@@ -166,7 +168,9 @@ The mesh is then refined uniformly on all processors. The number of refinement l
 
 [lines 152–157](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L152-L157)
 
-We now want to create a new parallel mesh. The next three lines create the parallel mesh by partitioning the serial mesh and refining further to increase the resolution. The additional refinement level, `par_ref_levels`, is set to $1$ by default but can be modified via user input.
+The program now transitions to the parallel computing portion of the example. For this, we want to first create the parallel mesh obect defined as `pmesh` with the MFEM class `ParMesh`. This is done by partitioning the serial mesh and refining further to increase the resolution by the `par_ref_levels` value specified by the user.
+
+Once we create our parallel mesh we are free to delete the serial mesh.
 
 ```cpp
     ParMesh *pmesh = new ParMesh(MPI_COMM_WORLD, *mesh);
@@ -176,7 +180,6 @@ We now want to create a new parallel mesh. The next three lines create the paral
         pmesh->UniformRefinement();
     }
 ```
-Once we create our parallel mesh we are free to delete the serial mesh.
 
 ### Define Parallel Finite Element Space
 
