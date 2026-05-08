@@ -1,6 +1,6 @@
 # 📘 Laplacian Eigenproblem
 
-*Annotated by Siddhant Ranka and Luis Gomez, APMA 2560, 08 May 2026.*
+by Siddhant Ranka and Luis Gomez, Brown University 08 May 2026.
 
 `45 minutes` `intermediate`
 
@@ -459,29 +459,31 @@ A few representative invocations (these match the comments at the top of `ex11p.
 
 ```bash
 mpirun -np 4 ex11p -m ../data/square-disc.mesh
+```
+This first run line solves eigenvalue problem on the square disk mesh. 
 
+<p align="center">
+![square](images/Square_Disk_Mesh_Lowest.png)
+</p>
 
+The resulting GLVIS plot corresponds to the first eigenfunction, which is the lowest eigenmode.
 
-mpirun -np 4 ex11p -m ../data/[mesh2].mesh -o 2
+```bash
+mpirun -np 4 ex11p -m ../data/toroid-wedge.mesh -o 2
+```
+The second run solves the eigenvalue problem on the toroid-wedge mesh. This time, the polynomial order is specified by user input to be 2. 
 
+<p align="center">
+![toroid](images/toroid_wedge.png)
+</p>
 
+The resulting GLVIS plot corresponds to the second eigenfunction for the torus-wedge.
 
-
+```bash
 mpirun -np 4 ex11p -m ../data/star.mesh -slu
 mpirun -np 4 ex11p -m ../data/star.mesh -sp
 mpirun -np 4 ex11p -m ../data/star.mesh -cpardiso
-
 ```
-
-The first run line solves eigenvalue problem on the square disk mesh. 
-![square](images/Square_Disk_Mesh_Lowest.png)
-The resulting GLVIS plot corresponds to the first eigenfunction, which is the lowest eigenmode.
-
-
-The second run solves the eigenvalue problem on the toroid-wedge mesh. This time, the polynomial order is specified by user input to be 2. 
-![toroid](images/toroid_wedge.png)
-The resulting GLVIS plot corresponds to the second eigenfunction for the torus-wedge.
-
 
 The last three runs describe how the user can specify a direct parallel solver to be used as a substitute for the BoomerAMG preconditioner.
 
