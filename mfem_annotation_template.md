@@ -462,9 +462,9 @@ mpirun -np 4 ex11p -m ../data/square-disc.mesh
 ```
 This first run line solves eigenvalue problem on the square disk mesh. 
 
-<center>
+<p align="center">
 ![square](images/Square_Disk_Mesh_Lowest.png)
-</center>
+</p>
 
 The resulting GLVIS plot corresponds to the first eigenfunction, which is the lowest eigenmode.
 
@@ -473,9 +473,9 @@ mpirun -np 4 ex11p -m ../data/toroid-wedge.mesh -o 2
 ```
 The second run solves the eigenvalue problem on the toroid-wedge mesh. This time, the polynomial order is specified by user input to be 2. 
 
-<center>
+<p align="center">
 ![toroid](images/toroid_wedge.png)
-</center>
+</p>
 
 The resulting GLVIS plot corresponds to the second eigenfunction for the torus-wedge.
 
