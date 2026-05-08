@@ -90,7 +90,7 @@ The purpose of this example is to compute a set of the lowest eigenmodes for the
 
 [lines 61–64](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L61-L64)
 
-To start, we first initialize MPI (a standardized library specification used to write parallel programs) and HYPRE (an open-source library designed for solving large sparse linear systems of equations through parallel computing).
+Since the example is only run in parallel, which is due to the large amount of memory used to run the example, we begin by initializing MPI (a standardized API used to write parallel programs) and HYPRE (an open-source library designed for solving large sparse linear systems of equations through parallel computing).
 
 ```cpp
 Mpi::Init(argc, argv);
@@ -187,7 +187,7 @@ else
 
 ```
 
-We now define a parallel finite element space
+We now define a parallel finite element space:
 
 ```cpp
 
@@ -199,7 +199,7 @@ if (myid == 0)
 }
 ```
 
-The number of unknowns corresponds to the size of the linear system, or in other words, the number of coefficients $c_i$ from equation
+The number of unknowns corresponds to the size of the linear system, or in other words, the number of coefficients $c_i$ from equation.
 
 
 ### Parallel Bilinear Forms
@@ -210,7 +210,7 @@ The array `ess_bdr` identifies the boundaries that are Dirichlet. The function `
 
 As mentioned previously the boundary conditions are homogenous Dirichlet. We apply homogeneous Dirichlet boundary conditions on $\partial \Omega$. `ess_br` stores the attributes of the boundary and flags the attributes corresponding to homogenous Dirichlet boundary conditions. `MarkExternalBoundaries` applies the boundary conditions on all external boundaries.
 
-We set up the parallel bilinear forms on the finite element space for _ and _. This is created using the class `ParaBilinearForm`
+We set up the parallel bilinear forms on the finite element space for _ and _. This is created using the class `ParaBilinearForm`.
 
 ```cpp
 ParBilinearForm *a = new ParBilinearForm(fespace);
@@ -344,10 +344,6 @@ lobpcg->SetOperator(*A);
 
 `Solve` computes the eigenmodes and `GetEigenvalues` extracts the eigenvalues and stores them in the array `eigenvalues`. `ParGridFunction` applied on `fespace` defines a parallel grid function to represent each eigenmode that the solver returns.
 
-[Explain how the solution is written to disk and/or sent to GLVis.]
-
-[Add additional sections as needed — e.g., error computation against an exact solution, time-stepping loop, AMR loop. Use the same pattern: description → code excerpt → prose.]
-
 ### Save Refined Mesh and Modes in Parallel
 
 [lines 314–335](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L314-L335)
@@ -427,16 +423,16 @@ We convert each eigenvector from a HypreParVector to a ParaGridFunction.
 ```
 
 prints a status line
-We extract each eigenvector and send the eigenmode and mesh to GLVIS by writing it to the socket. On GLVIS, the user inputs 'c' to continue to display the next eigenmode on GLVIS
+We extract each eigenvector and send the eigenmode and mesh to GLVIS by writing it to the socket. On GLVIS, the user inputs 'c' to continue to display the next eigenmode on GLVIS.
 
 ### Free Used Memory
 
 [lines 378–394](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L338-L375)
 
-To conclude the example, we free all used memory, including the memory used by the eigensolver, preconditione/parallel direct solver, our $A$ and $M$ matrices, the mesh, and the finite element space.
+To conclude the example, we free all used memory, including the memory used by the eigensolver `lobpcg`, preconditione/parallel direct solver `precond`, our $A$ and $M$ matrices, the finite element space `fespace`/`fec`, and the mesh `pmesh`.
 
 ```cpp
-    delete lobpcg;
+   delete lobpcg;
    delete precond;
    delete M;
    delete A;
