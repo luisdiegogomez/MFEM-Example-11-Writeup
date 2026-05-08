@@ -1,6 +1,6 @@
 # 📘 Laplacian Eigenproblem
 
-by Siddhant Ranka and Luis Gomez, Brown University 08 May 2026.
+by Siddhant Ranka and Luis Gomez, Brown University
 
 `45 minutes` `intermediate`
 
