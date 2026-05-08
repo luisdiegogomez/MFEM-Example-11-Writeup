@@ -278,7 +278,7 @@ As mentioned previously the goal is to find the lowest eigenmodes. However we do
 
 [lines 246–302](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L246-L302)
 
-The example utilizes the LOBPCG eigenvalue solver to find the eigenmodes. By default, the example uses the LOBPCG solver with the BoomerAMG preconditioner in Hypre. However, the user can choose to use the eigenvalue solver with either the SuperLU, STRUMPACK, or CPardiso parallel direct solvers. The user can specify their choice of direct solver on the command line.
+The example utilizes the LOBPCG eigenvalue solver to find the eigenmodes. By default, the example uses the LOBPCG solver with the BoomerAMG preconditioner in Hypre. However, the user can choose to use the eigenvalue solver with either the SuperLU, STRUMPACK, or CPardiso parallel direct solvers. As mentioned in the **Parse Command-line Options** section, the user can specify their choice of direct solver on the command line.
 
 ```cpp
     Solver * precond = NULL;
