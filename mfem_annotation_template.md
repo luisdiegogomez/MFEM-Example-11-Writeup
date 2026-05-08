@@ -87,7 +87,7 @@ The purpose of this example is to compute a set of the lowest eigenmodes for the
 
 ### Section 1 — Initialize MPI and HYPRE for a Parallel Computing
 
-([lines 61–64](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L61-L64)):
+[lines 61–64](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L61-L64)
 
 To start, we first initialize MPI (a standardized library specification used to write parallel programs) and HYPRE (an open-source library designed for solving large sparse linear systems of equations through parallel computing).
 
@@ -98,11 +98,11 @@ Mpi::Init(argc, argv);
    Hypre::Init();
 ```
 
-### [Section 2 — Parse command-line options.]
+### Section 2 — Parse Command-line Options
+
+[lines 67–132](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L67-L132)
 
 The example accepts several command-line options to control mesh, polynomial order, number of eigenmodes, and solver choice:
-
-[Parse command-line options.] ([lines 67–132](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L67-L132)):
 
 ```cpp
 const char *mesh_file = "../data/star.mesh";
@@ -119,23 +119,20 @@ const char *mesh_file = "../data/star.mesh";
 
 The above lines set the default parameters. To allow the user to change the parameters in the command line when running, we use `args.AddOption` on each of the parameters. `OptionsParser` allows us to parse the command line arguments.
 
-[Explain what each option controls. Highlight the ones specific to this example.]
+### Section 3 — Mesh Construction
 
-### [Section 3 — mesh construction]
+[lines 137–138](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L137-L138)
 
 The code loads the computational mesh from the file the user inputted, and then, creates the class `Mesh` and the corresponding object `mesh`. 
-
-
-[Read the (serial) mesh from the given mesh file on all processors. We can handle triangular, quadrilateral, tetrahedral, hexahedral, surface and volume meshes with the same code.] ([lines 137–138](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L137-L138)):
 
 ```cpp
 Mesh *mesh = new Mesh(mesh_file, 1, 1);
 int dim = mesh->Dimension();
 ```
 
-### [Section 4 — Refine the serial mesh]
+### Section 4 — Refine the Serial Mesh
 
-[Refine the serial mesh on all processors to increase the resolution. In this example we do 'ref_levels' of uniform refinement (2 by default, or specified on the command line with -rs).] ([lines 143–146](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#LX143-L146)):
+[lines 143–146](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#LX143-L146)
 
 The mesh is then refined uniformly on all processors. The number of refinement levels is $2$ by default but can be changed via user input.
 
@@ -146,9 +143,9 @@ for (int lev = 0; lev < ser_ref_levels; lev++)
    }
 ```
 
-### [Section 5 — Define parallel mesh]
+### Section 5 — Define Parallel Mesh
 
-[Define a parallel mesh by a partitioning of the serial mesh. Refine this mesh further in parallel to increase the resolution (1 time by default, or specified on the command line with -rp). Once the parallel mesh is defined, the serial mesh can be deleted.] ([lines 152–157](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L152-L157)):
+[lines 152–157](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L152-L157)
 
 We now want to create a new parallel mesh. The next three lines create the parallel mesh by partitioning the serial mesh and refining further to increase the resolution. The additional refinement level, `par_ref_levels`, is set to $1$ by default but can be modified via user input.
 
@@ -162,9 +159,9 @@ for (int lev = 0; lev < par_ref_levels; lev++)
 ```
 Once we create our parallel mesh we are free to delete the serial mesh.
 
-### [Section 6 — Define parallel finite element space]
+### Section 6 — Define Parallel Finite Element Space
 
-[Define a parallel finite element space on the parallel mesh. Here we use continuous Lagrange finite elements of the specified order. If order < 1, we instead use an isoparametric/isogeometric space.] ([lines 162–180](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L162-L180)):
+[lines 162–180](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L162-L180)
 
 We now construct a finite element space using piecewise polynomial basis functions of the order the user inputted. We use an isoparametric/isogeometric space if the order < 1.
 
@@ -189,7 +186,6 @@ else
 
 ```
 
-
 We now define a parallel finite element space
 
 ```cpp
@@ -204,18 +200,17 @@ if (myid == 0)
 
 The number of unknowns corresponds to the size of the linear system, or in other words, the number of coefficients $c_i$ from equation
 
-[Explain which FE space is being built (H1, H(curl), H(div), L2) and why it's the right space for this problem.]
 
+### Section 7 — Parallel Bilinear Forms
 
-### [Section 7 — Parallel bilinear forms]
-
-[Set up the parallel bilinear forms a(.,.) and m(.,.) on the finite element space. The first corresponds to the Laplacian operator -Delta, while the second is a simple mass matrix needed on the right hand side of the generalized eigenvalue problem below. The boundary conditions are implemented by elimination with special values on the diagonal to shift the Dirichlet eigenvalues out of the computational range. After serial and parallel assembly we extract the corresponding parallel matrices A and M.] ([lines 190–241](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L190-L241)):
+[lines 190–241](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L190-L241)
 
 The array `ess_bdr` identifies the boundaries that are Dirichlet. The function `MarkExternalBoundaries` takes `ess_bdr` as an input and applies the boundary conditions to all external boundaries.
 
 As mentioned previously the boundary conditions are homogenous Dirichlet. We apply homogeneous Dirichlet boundary conditions on $\partial \Omega$. `ess_br` stores the attributes of the boundary and flags the attributes corresponding to homogenous Dirichlet boundary conditions. `MarkExternalBoundaries` applies the boundary conditions on all external boundaries.
 
 We set up the parallel bilinear forms on the finite element space for _ and _. This is created using the class `ParaBilinearForm`
+
 ```cpp
 ParBilinearForm *a = new ParBilinearForm(fespace);
 a->AddDomainIntegrator(new DiffusionIntegrator(one));
@@ -262,12 +257,9 @@ if (pmesh->bdr_attributes.Size())
 }
 ```
 
-[Explain how essential vs. natural BCs are handled. If there's anything tricky about the BC handling — e.g., elimination, weak imposition — explain it here.]
+### Section 8 — Setting Up Eigensolver
 
-
-### [Section 8 — Setting up Eigensolver]
-
-[Define and configure the LOBPCG eigensolver and the BoomerAMG preconditioner for A to be used within the solver. Set the matrices which define the generalized eigenproblem A x = lambda M x.] ([lines 246–302](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L246-L302)):
+[lines 246–302](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L246-L302)
 
 The example utilizes the LOBPCG eigenvalue solver to find the eigenmodes. By default, the example uses the LOBPCG solver with the BoomerAMG preconditioner in Hypre. However, the user can choose to use the eigenvalue solver with either the SuperLU, STRUMPACK, or CPardiso parallel direct solvers. The user can specify their choice of direct solver on the command line.
 
@@ -338,13 +330,9 @@ lobpcg->SetMassMatrix(*M);
 lobpcg->SetOperator(*A);
 ```
 
-[Explain the choice of solver and preconditioner. Why is this combination appropriate for this PDE? What's the expected scaling behavior?]
+### Section 9 — Compute Eigenmodes and Extract Eigenvalues
 
-[Explain what `Solve()` / `Mult()` does, what the return value or output is, and how the solution is post-processed if needed.]
-
-### [Section 9 — Compute eigenmodes and extract eigenvalues]
-
-[Compute the eigenmodes and extract the array of eigenvalues. Define a parallel grid function to represent each of the eigenmodes returned by the solver.] ([lines 307–310](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L307-L310)):
+[lines 307–310](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L307-L310)
 
 ```cpp
     Array<real_t> eigenvalues;
@@ -359,9 +347,9 @@ lobpcg->SetOperator(*A);
 
 [Add additional sections as needed — e.g., error computation against an exact solution, time-stepping loop, AMR loop. Use the same pattern: description → code excerpt → prose.]
 
-### [Section 10 — Save refined mesh and modes in parallel]
+### Section 10 — Save Refined Mesh and Modes in Parallel
 
-[Save the refined mesh and the modes in parallel. This output can be viewed later using GLVis: "glvis -np <np> -m mesh -g mode".] ([lines 314–335](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L314-L335)):
+[lines 314–335](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L314-L335)
 
 Once the eigenmodes have been computed, we want to save the refined mesh and eigenmodes in parallel:
 
@@ -392,9 +380,9 @@ Once the eigenmodes have been computed, we want to save the refined mesh and eig
 
 We convert each eigenvector from a HypreParVector to a ParaGridFunction.
 
-### [Section 11 — Send solution to GLVis server]
+### Section 11 — Send Solution to GLVis Server
 
-[Send the solution by socket to a GLVis server.] ([lines 338–375](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L338-L375)):
+[lines 338–375](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L338-L375)
 
 ```cpp
     if (visualization)
@@ -440,11 +428,11 @@ We convert each eigenvector from a HypreParVector to a ParaGridFunction.
 prints a status line
 We extract each eigenvector and send the eigenmode and mesh to GLVIS by writing it to the socket. On GLVIS, the user inputs 'c' to continue to display the next eigenmode on GLVIS
 
-### [Section 12 — Free used memory]
+### Section 12 — Free Used Memory
 
-To conclude the example, we free all used memory, including the memory taken by the eigensolver, preconditione/parallel direct solver, our $A$ and $M$ matrices, the mesh, and the finite element space ([lines 378–394](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L338-L375)):
+[lines 378–394](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L338-L375)
 
----
+To conclude the example, we free all used memory, including the memory taken by the eigensolver, preconditione/parallel direct solver, our $A$ and $M$ matrices, the mesh, and the finite element space
 
 ```cpp
     delete lobpcg;
@@ -465,6 +453,8 @@ To conclude the example, we free all used memory, including the memory taken by 
    return 0;
 }
 ```
+
+---
 
 ## ☑ Sample runs
 
@@ -498,26 +488,6 @@ The resulting GLVIS plot corresponds to the second eigenfunction for the torus-w
 
 The last three runs describe how the user can specify a direct parallel solver to be used as a substitute for the BoomerAMG preconditioner.
 
-[Brief description of what each sample run is testing — different mesh types, different orders, different physics regimes.]
-
-> **ℹ Try this!**
->
-> [Concrete experiment 1 — usually about convergence or basic behavior. Include expected output or a property the reader can check.]
->
-> ```
-> [expected output snippet, if useful]
-> ```
-
-> **ℹ Try this!**
->
-> [Concrete experiment 2 — usually exploring a parameter (polynomial order, mesh refinement, problem variant). State what theoretical prediction the reader should verify.]
-
-> **⚠ Warning**
->
-> [Optional warning about a common pitfall — e.g., "Don't forget the `./` before the executable on macOS", or "This example requires GLVis to be running on port 19916 to see visualizations".]
-
----
-
 ---
 
 MFEM puts constants in the diagonals - extremely small number
@@ -526,38 +496,6 @@ MFEM puts constants in the diagonals - extremely small number
 don't want dirichlet eigenvalues to be big
 we want lowest eigenvalues
 
-## ☑ [Optional: special section unique to this example]
-
-[Use this slot for content that doesn't fit elsewhere. Examples:]
-
-- **Why parallel-only?** — if the example has no serial version, explain why.
-- **Convergence study** — if the example is well-suited to a discretization-error study.
-- **Parallel scaling notes** — if the example demonstrates a performance feature.
-- **Comparison to another example** — e.g., "Compared to ex1, this example differs in...".
-
-[Delete this section if not needed.]
-
----
-
-## ☑ Things to keep in mind
-
-- **[Key takeaway 1 — usually the most important conceptual point].** [One- or two-sentence elaboration.]
-
-- **[Key takeaway 2].** [Elaboration.]
-
-- **[Key takeaway 3].** [Elaboration.]
-
-- **[Add 1–2 more bullets if needed.]**
-
----
-
-## ☑ Next Steps
-
-- [Example M](https://mfem.org/examples/#exM): [One-line description of why a reader of this annotation might want to look at it next.]
-- [Example K](https://mfem.org/examples/#exK): [Description.]
-- [Optional: link to a miniapp or tutorial page for further reading.]
-
-[Back to the MFEM tutorial page](https://mfem.org/tutorial/)
 
 ---
 
