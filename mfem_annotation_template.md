@@ -32,41 +32,41 @@ Where $\Omega$ is a bounded domain of general shape $\Omega\subset\mathbb{R}^d$.
 
 To solve the PDE, we first derive the weak form. To do so, we multiply the PDE by a test function $v \in H^1_0(\Omega)$, which gives us 
 
-$$(-\Delta u) v = \lambda (u) v\quad \text{in } \Omega, \qquad u = 0 \quad \text{on } \partial\Omega.$$
+$$(-\Delta u) v = \lambda (u) v\quad \text{in } \Omega, \qquad u = 0 \quad \text{on } \partial\Omega. \tag{2}$$
 
 We then integrate both sides over $\Omega$:
 
-$$\int_\Omega (-\Delta u) v \, dx = \lambda \int_\Omega u v \, dx.$$
+$$\int_\Omega (-\Delta u) v \, dx = \lambda \int_\Omega u v \, dx. \tag{3}$$
 
 Integrating by parts and using the divergence theorem on the left-hand side we arrive at:
 
-$$\int_\Omega \nabla u \cdot \nabla v \, dx - \int_{\partial\Omega} (\nabla u \cdot n) \, v \, ds = \lambda \int_\Omega u \, v \, dx.$$
+$$\int_\Omega \nabla u \cdot \nabla v \, dx - \int_{\partial\Omega} (\nabla u \cdot n) \, v \, ds = \lambda \int_\Omega u \, v \, dx. \tag{3}$$
 
 Since $v \in H^1_0(\Omega)$ vanishes on $\partial\Omega$, the boundary term drops out:
 
-$$\int_\Omega \nabla u \cdot \nabla v \, dx = \lambda \int_\Omega u v \, dx.$$
+$$\int_\Omega \nabla u \cdot \nabla v \, dx = \lambda \int_\Omega u v \, dx. \tag{4}$$
 
 Giving us the final weak form:
 
 $$\begin{cases} 
     \text{Find } u \in H^1_0(\Omega) \text{ such that } u=0 \text{ on } \partial\Omega \text{ and}\\
     (\nabla u, \nabla v) = \lambda(u,v).
-\end{cases} \tag{2}$$
+\end{cases} \tag{5}$$
 
 ### Galerkin Discretization
 
 We use galerkin reduction to approximate the analytical solution $u$ as $u_h$, where 
 
-$$u_h = \sum_{i = 1}^n c_i \varphi_i,$$
+$$u_h = \sum_{i = 1}^n c_i \varphi_i, \tag{6}$$
 
 $c_i$ represents the coefficients, corresponding to the degrees of freedom. $\varphi_i$ represents the basis functions, which in this case are piecewise polynomial functions of the specified order. For our test function approximation of $v$, we can approximate $v$ as $v_h = \varphi_j$.
 Substituting $u_h$ and $v_h$ for $u$ and $v$ respectively yields
 
-$$\sum_{i=1}^n c_i \int_\Omega \nabla\varphi_i \cdot \nabla\varphi_j \, dx = \lambda \sum_{i=1}^n c_i \int_\Omega \varphi_i \, \varphi_j \, dx. \tag{3}$$
+$$\sum_{i=1}^n c_i \int_\Omega \nabla\varphi_i \cdot \nabla\varphi_j \, dx = \lambda \sum_{i=1}^n c_i \int_\Omega \varphi_i \, \varphi_j \, dx. \tag{7}$$
 
-We can rewrite equation (3) as 
+We can rewrite equation (7) as 
 
-$$ A\textbf{x} = \lambda M\textbf{x}, \tag{4}$$
+$$ A\textbf{x} = \lambda M\textbf{x}, \tag{8}$$
 
 where
 
