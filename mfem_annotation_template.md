@@ -103,7 +103,25 @@ Since the example is only run in parallel, which is due to the large amount of m
 
 [lines 67–132](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L67-L132)
 
-The example accepts several command-line options to control mesh, polynomial order, number of eigenmodes, and solver choice:
+The example accepts several command-line options to control the following objects used later in the code:
+
+1. `meshfile`: `char` object that specifies the mesh file. Program defaults to the star mesh, but MFEM can handle various mesh types. Please check the official documentation for further details.
+2. `ser_ref_levels`: `int` object that specifies the number of times to refine the mesh uniformly in serial (i.e. on an individual processor and not in parallel).
+3. `par_ref_levels`: `int` object that specifies the number of times to refine the mesh uniformly in parallel.
+4. `order`: `int` object that specifies the polynomial degree of the finite element. If set to -1, the program considers an isoparametric space instead.
+5. `nev`: `int` object that specifies the number of eigenmodes.
+6. `seed`: an `int` object that specifies a random seed used to initialize LOBPCG (a matrix-free iterative method used to compute a few of the smallest or largest eigenvalues and corresponding eigenvectors for generalized eigenvalue problems of the form $A\textbf{x} = \lambda M\textbf{x}$) on [line 295](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L295).
+
+The following objects are booleans meant to specify which specific solver meant to will be used by the LOBPCG eigensolver to calculate the preconditioner, the purpose of which will be elaborated in the **Setting Up Eigensolver** section.
+
+8. `slu_solver` : a `bool` object that specifies whether the system will use the direct solver SuperLU.
+9.  `sp_solver` : a `bool` object that specifies whether the system will use the direct solver STRUMPACK.
+10.  `cpardiso_solver` : a `bool` object that specifies whether the system will use the direct solver STRUMPACK.
+
+Finally,
+
+11.  `vis`: a `bool` object determines if visualization will be executed or not (with the help of a GLVis server as executed on [lines 338-375](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L338-L375)).
+
 
 ```cpp
     const char *mesh_file = "../data/star.mesh";
