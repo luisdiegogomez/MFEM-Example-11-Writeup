@@ -75,14 +75,6 @@ $$M_{ij} =  \int_\Omega \varphi_i \, \varphi_j \, dx,$$
 
 $$\textbf{x}_i = c_i.$$
 
-### [Optional subsection: anything specific to this example]
-
-[E.g., "Why a generalized eigenvalue problem?", "Why an $H(\text{curl})$ space?", "Why DG?". One short subsection per non-obvious choice the example makes.]
-
-> **ℹ Note**
->
-> [Optional pointer to deeper theory or related MFEM docs. Keep it brief — one or two sentences.]
-
 ---
 
 ## ☑ Annotated Example 11
