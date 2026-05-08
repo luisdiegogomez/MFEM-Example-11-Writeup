@@ -255,7 +255,7 @@ We find the mass matrx $M$ by using the mass integrator `MassIntegrator`.
     m->Finalize();
 ```
 
-As mentioned previously the goal is to find the lowest eigenmodes. However we do not want our eigenvalues to correspond to the Dirichlet boundaries. Therefore, we shift the Dirichlet eigenvalues out of the computational range. This means for matrix $A$ we set the entries along the diagonal equal to 1. For matrix $M$ we set the entries on the diagonal to 10^-308.
+As mentioned previously the goal is to find the lowest eigenmodes. However we do not want our eigenvalues to correspond to the Dirichlet boundaries. Therefore, we shift the Dirichlet eigenvalues out of the computational range. This means for matrix $A$ we set the entries along the diagonal equal to 1. For matrix $M$ we set the entries on the diagonal to the minimal numerical limits.
 
 ```cpp
     HypreParMatrix *A = a->ParallelAssemble();
