@@ -105,23 +105,26 @@ Since the example is only run in parallel, which is due to the large amount of m
 
 The example accepts several command-line options to control the following objects used later in the code:
 
-1. `meshfile`: `char` object that specifies the mesh file. Program defaults to the star mesh, but MFEM can handle various mesh types. Please check the official documentation for further details.
-2. `ser_ref_levels`: `int` object that specifies the number of times to refine the mesh uniformly in serial (i.e. on an individual processor and not in parallel).
-3. `par_ref_levels`: `int` object that specifies the number of times to refine the mesh uniformly in parallel.
-4. `order`: `int` object that specifies the polynomial degree of the finite element. If set to -1, the program considers an isoparametric space instead.
-5. `nev`: `int` object that specifies the number of eigenmodes.
+1. `meshfile`: a `char` object that specifies the mesh file with a corresponding shape. The program defaults to the star mesh, but MFEM can handle various mesh types. Please check the official documentation for further details.
+2. `ser_ref_levels`: an `int` object that specifies the number of times to refine the mesh uniformly in serial (i.e. on an individual processor and not in parallel).
+3. `par_ref_levels`: an `int` object that specifies the number of times to refine the mesh uniformly in parallel (which will be elaborated in later sections).
+4. `order`: an `int` object that specifies the polynomial degree of the finite element. If set to -1, the program considers an isoparametric space instead.
+5. `nev`: an `int` object that specifies the number of eigenmodes.
 6. `seed`: an `int` object that specifies a random seed used to initialize LOBPCG (a matrix-free iterative method used to compute a few of the smallest or largest eigenvalues and corresponding eigenvectors for generalized eigenvalue problems of the form $A\textbf{x} = \lambda M\textbf{x}$) on [line 295](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L295).
 
 The following objects are booleans meant to specify which specific solver meant to will be used by the LOBPCG eigensolver to calculate the preconditioner, the purpose of which will be elaborated in the **Setting Up Eigensolver** section.
 
-8. `slu_solver` : a `bool` object that specifies whether the system will use the direct solver SuperLU.
-9.  `sp_solver` : a `bool` object that specifies whether the system will use the direct solver STRUMPACK.
-10.  `cpardiso_solver` : a `bool` object that specifies whether the system will use the direct solver STRUMPACK.
+8. `slu_solver` : a `bool` object that specifies whether the system will use the direct solver in SuperLU, a library used to solve large, sparse, non-symmetric systems of linear equations using LU factorization.
+9.  `sp_solver` : a `bool` object that specifies whether the system will use the direct solver in STRUMPACK, a library designed for solving large-scale linear systems of equations.
+10.  `cpardiso_solver` : a `bool` object that specifies whether the system will use the direct solver CPardiso from the MKL library, which is a parallel direct solver for large sparse linear systems of equations.
+
+For further details, please check the respective official documentations for each.
 
 Finally,
 
-11.  `vis`: a `bool` object that determines if visualization will be executed or not (with the help of a GLVis server as executed on [lines 338-375](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L338-L375)).
+11.  `vis`: a `bool` object that determines if visualization will be executed or not with the help of a GLVis server as executed on [lines 338-375](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L338-L375).
 
+The program sets the following default values for the parameters ([lines 67-76](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L67-L76)). 
 
 ```cpp
     const char *mesh_file = "../data/star.mesh";
@@ -136,15 +139,13 @@ Finally,
     bool visualization = 1;
 ```
 
-The above lines ([lines 67-76](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L67-L76)) are the default values for the parameters. 
-
-The program uses the function `OptionsParser` to parse the command line arguments, uses `args.AddOption` on each of the parameters to change to any specfied values, and has built-in warnings for incompatible specifications such as choosing two solvers ([lines 78-132](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L78-L132)).
+The program uses the function `OptionsParser` to parse the command line arguments, uses `args.AddOption` on each of the parameters to change the parameters to any specfied values, and has built-in warnings for incompatible specifications such as choosing two solvers ([lines 78-132](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L78-L132)).
 
 ### Mesh Construction
 
 [lines 137–138](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L137-L138)
 
-The code loads the computational mesh from the `mesh_file` the user inputted, and then, creates the class `Mesh` and the corresponding object `mesh`. 
+The code loads the computational mesh from the `mesh_file` the user inputted and then creates the corresponding object `mesh` with the MFEM class `Mesh`. 
 
 ```cpp
     Mesh *mesh = new Mesh(mesh_file, 1, 1);
@@ -185,9 +186,9 @@ Once we create our parallel mesh we are free to delete the serial mesh.
 
 [lines 162–180](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L162-L180)
 
-We now construct a finite element space using piecewise polynomial basis functions of the order the user inputted. We use an isoparametric/isogeometric space if the order < 1.
+We now construct a finite element space using piecewise polynomial basis functions of the `order` inputted by the user.
 
-We create `FiniteElementCollection` object `fec`. If we have not already set the `fec` previously, we set the space to be the $H^1$ space on the given domain and `order` corresponds to the polynomial degree. If the user does not input an order value, `order` is set to 1.
+We create the object `fec` with MFEM class `FiniteElementCollection`. If we have not already set the `fec` previously, we set the space to be the $H^1$ space on the given domain and `order` corresponds to the polynomial degree. 
 
 ```cpp
     FiniteElementCollection *fec;
