@@ -472,7 +472,7 @@ The second run solves the eigenvalue problem on the toroid-wedge mesh. This time
 
 The resulting GLVIS plot corresponds to the second eigenfunction for the torus-wedge.
 
-Although by default the example uses the LOBPCG Eigensolver with the BoomerAMG preconditioner, there are three direct parallel solvers that can be specifed to used instead as seen in the following three runs:
+Although by default the example uses the LOBPCG Eigensolver with the BoomerAMG preconditioner, there are three direct parallel solvers that can be specifed to used instead, as seen in the following three runs:
 
 ```bash
 mpirun -np 4 ex11p -m ../data/star.mesh -slu
