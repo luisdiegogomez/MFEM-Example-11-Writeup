@@ -86,7 +86,7 @@ Below we highlight selected portions of the example code and connect them with t
 
 The purpose of this example is to compute a set of the lowest eigenmodes for the referred eigenproblem. This example is only run in parallel.
 
-### Section 1 — Initialize MPI and HYPRE for a Parallel Computing
+### Initialize MPI and HYPRE for a Parallel Computing
 
 [lines 61–64](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L61-L64)
 
@@ -99,7 +99,7 @@ Mpi::Init(argc, argv);
    Hypre::Init();
 ```
 
-### Section 2 — Parse Command-line Options
+### Parse Command-line Options
 
 [lines 67–132](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L67-L132)
 
@@ -120,7 +120,7 @@ const char *mesh_file = "../data/star.mesh";
 
 The above lines set the default parameters. To allow the user to change the parameters in the command line when running, we use `args.AddOption` on each of the parameters. `OptionsParser` allows us to parse the command line arguments.
 
-### Section 3 — Mesh Construction
+### Mesh Construction
 
 [lines 137–138](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L137-L138)
 
@@ -131,7 +131,7 @@ Mesh *mesh = new Mesh(mesh_file, 1, 1);
 int dim = mesh->Dimension();
 ```
 
-### Section 4 — Refine the Serial Mesh
+### Refine the Serial Mesh
 
 [lines 143–146](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#LX143-L146)
 
@@ -144,7 +144,7 @@ for (int lev = 0; lev < ser_ref_levels; lev++)
    }
 ```
 
-### Section 5 — Define Parallel Mesh
+### Define Parallel Mesh
 
 [lines 152–157](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L152-L157)
 
@@ -160,7 +160,7 @@ for (int lev = 0; lev < par_ref_levels; lev++)
 ```
 Once we create our parallel mesh we are free to delete the serial mesh.
 
-### Section 6 — Define Parallel Finite Element Space
+### Define Parallel Finite Element Space
 
 [lines 162–180](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L162-L180)
 
@@ -202,7 +202,7 @@ if (myid == 0)
 The number of unknowns corresponds to the size of the linear system, or in other words, the number of coefficients $c_i$ from equation
 
 
-### Section 7 — Parallel Bilinear Forms
+### Parallel Bilinear Forms
 
 [lines 190–241](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L190-L241)
 
@@ -258,7 +258,7 @@ if (pmesh->bdr_attributes.Size())
 }
 ```
 
-### Section 8 — Setting Up Eigensolver
+### Setting Up Eigensolver
 
 [lines 246–302](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L246-L302)
 
@@ -331,7 +331,7 @@ lobpcg->SetMassMatrix(*M);
 lobpcg->SetOperator(*A);
 ```
 
-### Section 9 — Compute Eigenmodes and Extract Eigenvalues
+### Compute Eigenmodes and Extract Eigenvalues
 
 [lines 307–310](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L307-L310)
 
@@ -348,7 +348,7 @@ lobpcg->SetOperator(*A);
 
 [Add additional sections as needed — e.g., error computation against an exact solution, time-stepping loop, AMR loop. Use the same pattern: description → code excerpt → prose.]
 
-### Section 10 — Save Refined Mesh and Modes in Parallel
+### Save Refined Mesh and Modes in Parallel
 
 [lines 314–335](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L314-L335)
 
@@ -381,7 +381,7 @@ Once the eigenmodes have been computed, we want to save the refined mesh and eig
 
 We convert each eigenvector from a HypreParVector to a ParaGridFunction.
 
-### Section 11 — Send Solution to GLVis Server
+### Send Solution to GLVis Server
 
 [lines 338–375](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L338-L375)
 
@@ -429,11 +429,11 @@ We convert each eigenvector from a HypreParVector to a ParaGridFunction.
 prints a status line
 We extract each eigenvector and send the eigenmode and mesh to GLVIS by writing it to the socket. On GLVIS, the user inputs 'c' to continue to display the next eigenmode on GLVIS
 
-### Section 12 — Free Used Memory
+### Free Used Memory
 
 [lines 378–394](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L338-L375)
 
-To conclude the example, we free all used memory, including the memory taken by the eigensolver, preconditione/parallel direct solver, our $A$ and $M$ matrices, the mesh, and the finite element space
+To conclude the example, we free all used memory, including the memory used by the eigensolver, preconditione/parallel direct solver, our $A$ and $M$ matrices, the mesh, and the finite element space.
 
 ```cpp
     delete lobpcg;
