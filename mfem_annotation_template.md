@@ -6,8 +6,10 @@ by Siddhant Ranka and Luis Gomez, Brown University
 
 > **✓ Lesson Objectives**
 >
-> - Understand the Finite Element Discretization of Laplacian Eigenvalue Problem
-> - Learn How to Use the LOBPCG Eigensolver with the BoomerAMG preconditioner or a direct parallel solver to solve eigenvalue problems  
+> - Understand the Finite Element Discretization of the general Laplacian Eigenvalue Problem with homogenous Dirichlet Boundary Conditions.
+> - Understand the interpretation of the solutions to this discrete form.
+> - Learn how to use the LOBPCG Eigensolver with a preconditioner to solve discritized eigenvalue problems.
+> - Learn what specficiations can be made to the general problem and how the code solves the system according to these specifications.
 
 
 > **ℹ Note**
@@ -81,7 +83,9 @@ $$\textbf{x}_i = c_i, \tag{12}$$
 
 Below we highlight the sections of the example code and connect them with the description in the previous section. You can follow along by browsing [`ex11p.cpp`](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp) in your editor.
 
-The purpose of this example is to compute a set of the lowest eigenmodes (i.e. the eigenfunctions with the lowest corresponding eigenvalues) for the referred eigenproblem. This example can only be run in parallel.
+The purpose of this example is to compute a set of the lowest eigenmodes (i.e. the eigenfunctions with the lowest corresponding eigenvalues) for the referred eigenproblem.  These modes are of interest because they typically represent the most persistent, large-scale structures in a system. This is due to how these values correspond to the vibrations that tend to oscillate or evolve the slowest compared to higher-frequency, faster-changing modes.
+
+This example can only be run in parallel.
 
 ### Initialize MPI and HYPRE for a Parallel Computing
 
