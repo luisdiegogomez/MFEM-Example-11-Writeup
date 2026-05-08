@@ -21,7 +21,7 @@ The Laplacian Eigenproblem (also known as the Laplacian Eigenfunction) is a part
 
 $$-\Delta u = \lambda u \quad \text{in } \Omega, \tag{1}$$
 
-with homogeneous dirichlet boundary conditions
+with homogeneous Dirichlet boundary conditions
 
 $$u = 0 \quad \text{on } \partial\Omega.$$
 
@@ -40,41 +40,41 @@ $$\int_\Omega (-\Delta u) v \, dx = \lambda \int_\Omega u v \, dx. \tag{3}$$
 
 Integrating by parts and using the divergence theorem on the left-hand side we arrive at:
 
-$$\int_\Omega \nabla u \cdot \nabla v \, dx - \int_{\partial\Omega} (\nabla u \cdot n) \, v \, ds = \lambda \int_\Omega u \, v \, dx. \tag{3}$$
+$$\int_\Omega \nabla u \cdot \nabla v \, dx - \int_{\partial\Omega} (\nabla u \cdot n) \, v \, ds = \lambda \int_\Omega u \, v \, dx. \tag{4}$$
 
 Since $v \in H^1_0(\Omega)$ vanishes on $\partial\Omega$, the boundary term drops out:
 
-$$\int_\Omega \nabla u \cdot \nabla v \, dx = \lambda \int_\Omega u v \, dx. \tag{4}$$
+$$\int_\Omega \nabla u \cdot \nabla v \, dx = \lambda \int_\Omega u v \, dx. \tag{5}$$
 
 Giving us the final weak form:
 
 $$\begin{cases} 
     \text{Find } u \in H^1_0(\Omega) \text{ such that } u=0 \text{ on } \partial\Omega \text{ and}\\
     (\nabla u, \nabla v) = \lambda(u,v).
-\end{cases} \tag{5}$$
+\end{cases} \tag{6}$$
 
 ### Galerkin Discretization
 
 We use Galerkin discretization to approximate the analytical solution $u$ as $u_h$, where 
 
-$$u_h = \sum_{i = 1}^n c_i \varphi_i, \tag{6}$$
+$$u_h = \sum_{i = 1}^n c_i \varphi_i, \tag{7}$$
 
 $c_i$ represents the coefficients, corresponding to the degrees of freedom. $\varphi_i$ represents the basis functions, which in this case are piecewise polynomial functions of the specified order. For our test function approximation of $v$, we can approximate $v$ as $v_h = \varphi_j$.
 Substituting $u_h$ and $v_h$ for $u$ and $v$ respectively yields
 
-$$\sum_{i=1}^n c_i \int_\Omega \nabla\varphi_i \cdot \nabla\varphi_j \, dx = \lambda \sum_{i=1}^n c_i \int_\Omega \varphi_i \, \varphi_j \, dx. \tag{7}$$
+$$\sum_{i=1}^n c_i \int_\Omega \nabla\varphi_i \cdot \nabla\varphi_j \, dx = \lambda \sum_{i=1}^n c_i \int_\Omega \varphi_i \, \varphi_j \, dx. \tag{8}$$
 
-We can rewrite equation (7) as 
+We can rewrite equation (8) as 
 
-$$ A\textbf{x} = \lambda M\textbf{x}, \tag{8}$$
+$$ A\textbf{x} = \lambda M\textbf{x}, \tag{9}$$
 
 where
 
-$$A_{ij} = \int_\Omega \nabla\varphi_i \cdot \nabla\varphi_j \, dx,$$
+$$A_{ij} = \int_\Omega \nabla\varphi_i \cdot \nabla\varphi_j \, dx, \tag{10}$$
 
-$$M_{ij} =  \int_\Omega \varphi_i \, \varphi_j \, dx,$$
+$$M_{ij} =  \int_\Omega \varphi_i \, \varphi_j \, dx, \tag{11}$$
 
-$$\textbf{x}_i = c_i.$$
+$$\textbf{x}_i = c_i, \tag{12}$$
 
 ---
 
@@ -220,9 +220,7 @@ The number of unknowns corresponds to the size of the linear system, or in other
 
 [lines 190–241](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L190-L241)
 
-The array `ess_bdr` identifies the boundaries that are Dirichlet. The function `MarkExternalBoundaries` takes `ess_bdr` as an input and applies the boundary conditions to all external boundaries.
-
-As mentioned previously the boundary conditions are homogenous Dirichlet. We apply homogeneous Dirichlet boundary conditions on $\partial \Omega$. `ess_br` stores the attributes of the boundary and flags the attributes corresponding to homogenous Dirichlet boundary conditions. `MarkExternalBoundaries` applies the boundary conditions on all external boundaries.
+As mentioned previously the boundary conditions are homogenous Dirichlet. We apply homogeneous Dirichlet boundary conditions on $\partial \Omega$. `ess_bdr` stores the attributes of the boundary and flags the attributes corresponding to homogenous Dirichlet boundary conditions. `MarkExternalBoundaries` applies the boundary conditions on all external boundaries.
 
 We set up the parallel bilinear forms on the finite element space for the Laplacian operator and Mass. This is created using the class `ParaBilinearForm`:
 
@@ -278,7 +276,7 @@ As mentioned previously the goal is to find the lowest eigenmodes. However we do
 
 [lines 246–302](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L246-L302)
 
-The example utilizes the LOBPCG eigenvalue solver to find the eigenmodes. By default, the example uses the LOBPCG solver with the BoomerAMG preconditioner in Hypre. However, the user can choose to use the eigenvalue solver with either the SuperLU, STRUMPACK, or CPardiso parallel direct solvers. As mentioned in the **Parse Command-line Options** section, the user can specify their choice of direct solver on the command line.
+The example utilizes the LOBPCG eigenvalue solver to find the eigenmodes. By default, the example uses the LOBPCG solver with the BoomerAMG preconditioner in HYPRE. However, the user can choose to use the eigenvalue solver with either the SuperLU, STRUMPACK, or CPardiso parallel direct solvers. As mentioned in the **Parse Command-line Options** section, the user can specify their choice of direct solver on the command line.
 
 ```cpp
     Solver * precond = NULL;
@@ -499,12 +497,6 @@ mpirun -np 4 ex11p -m ../data/star.mesh -cpardiso
 As mentioned in the first section, the three solvers being specified here are SuperLU, STRUMPACK, and CPardiso. However, the solvers' corresponding libraries must also be compiled. 
 
 ---
-
-MFEM puts constants in the diagonals - extremely small number
-
-- this is for eliminating dirichlet bcs
-don't want dirichlet eigenvalues to be big
-we want lowest eigenvalues
 
 
 ---
