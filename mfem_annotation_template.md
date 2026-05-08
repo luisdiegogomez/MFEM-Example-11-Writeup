@@ -221,7 +221,7 @@ The number of unknowns corresponds to the size of the linear system, or in other
 
 [lines 190–241](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L190-L241)
 
-As mentioned previously, the boundary conditions are homogenous dirichlet. We define an array `ess_bdr` that stores the values for the external boundary (denoted as the essential boundary). `MarkExternalBoundaries` is an MFEM function that applies the boundary conditions, for which the default is homogenous dirichlet.
+As mentioned previously, the boundary conditions are homogenous Dirichlet. We define an array `ess_bdr` that stores the values for the external boundary (denoted as the essential boundary). `MarkExternalBoundaries` is an MFEM function that applies the boundary conditions, for which the default is homogenous Dirichlet.
 
 ```cpp
     ConstantCoefficient one(1.0);
@@ -255,7 +255,7 @@ We find the stiffness matrix $A$ by using a diffusion integrator, MFEM function 
     }
 ```
 
-We then assemble the stiffness matrix, and set all the diagonal values of this stiffness matrix to 1 the eiginvalues correspoding to the dirichlet boundary conditions are not selected as the eigenvalues of interest.
+We then assemble the stiffness matrix, and set all the diagonal values of this stiffness matrix to 1 so that the eiginvalues correspoding to the Dirichlet boundary conditions are not selected as the eigenvalues of interest.
 
 ```cpp
     a->Assemble();
