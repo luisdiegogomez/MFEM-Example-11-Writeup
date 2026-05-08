@@ -25,8 +25,7 @@ with homogeneous Dirichlet boundary conditions
 
 $$u = 0 \quad \text{on } \partial\Omega.$$
 
-Where $\Omega$ is a bounded domain of general shape $\Omega\subset\mathbb{R}^d$. 
-
+Where $\Omega$ is a bounded domain of general shape $\Omega\subset\mathbb{R}^d$. There is not typically a unique solution for a given eigenproblem. The solutions $u$ are know as *eigenfunctions* and have a unique corresponding eigenvalue. These eigenfunctions and their corresponding eigenvalues are known as *eigenmodes*.
 
 ### Weak form
 
@@ -55,7 +54,7 @@ $$\begin{cases}
 
 ### Galerkin Discretization
 
-We use Galerkin discretization to approximate the analytical solution $u$ as $u_h$, where 
+We use Galerkin discretization to approximate the eigenfunction(s) $u$ as $u_h$, where 
 
 $$u_h = \sum_{i = 1}^n c_i \varphi_i, \tag{7}$$
 
@@ -80,11 +79,9 @@ $$\textbf{x}_i = c_i, \tag{12}$$
 
 ## ☑ Annotated Example 11
 
-MFEM's Example 11 implements the above formulation in the source file [`examples/ex11p.cpp`](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp).
+Below we highlight the sections of the example code and connect them with the description in the previous section. You can follow along by browsing [`ex11p.cpp`](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp) in your editor.
 
-Below we highlight selected portions of the example code and connect them with the description in the previous section. You can follow along by browsing [`ex11p.cpp`](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp) in your editor.
-
-The purpose of this example is to compute a set of the lowest eigenmodes for the referred eigenproblem. This example can only be run in parallel.
+The purpose of this example is to compute a set of the lowest eigenmodes (i.e. the eigenfunctions with the lowest corresponding eigenvalues) for the referred eigenproblem. This example can only be run in parallel.
 
 ### Initialize MPI and HYPRE for a Parallel Computing
 
@@ -109,8 +106,8 @@ The example accepts several command-line options to control the following object
 2. `ser_ref_levels`: an `int` object that specifies the number of times to refine the mesh uniformly in serial (i.e. on an individual processor and not in parallel).
 3. `par_ref_levels`: an `int` object that specifies the number of times to refine the mesh uniformly in parallel (which will be elaborated in later sections).
 4. `order`: an `int` object that specifies the polynomial degree of the finite element. If set to -1, the program considers an isoparametric space instead.
-5. `nev`: an `int` object that specifies the number of eigenmodes.
-6. `seed`: an `int` object that specifies a random seed used to initialize LOBPCG (a matrix-free iterative method used to compute a few of the smallest or largest eigenvalues and corresponding eigenvectors for generalized eigenvalue problems of the form $A\textbf{x} = \lambda M\textbf{x}$) on [line 295](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L295).
+5. `nev`: an `int` object that specifies the number of eigenmodes we want to compute.
+6. `seed`: an `int` object that specifies a random seed used to initialize LOBPCG (a matrix-free iterative method used to compute the smallest eigenvalues and corresponding eigenvectors for generalized eigenproblems) on [line 295](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L295).
 
 The following objects are booleans meant to specify which specific solver meant to will be used by the LOBPCG eigensolver to calculate the preconditioner, the purpose of which will be elaborated in the **Setting Up Eigensolver** section.
 
@@ -224,7 +221,7 @@ The number of unknowns corresponds to the size of the linear system, or in other
 
 [lines 190–241](https://github.com/mfem/mfem/blob/master/examples/ex11p.cpp#L190-L241)
 
-As mentioned previously the boundary conditions are homogenous Dirichlet. We apply homogeneous Dirichlet boundary conditions on $\partial \Omega$. `ess_bdr` stores the attributes of the boundary and flags the attributes corresponding to homogenous Dirichlet boundary conditions. `MarkExternalBoundaries` applies the boundary conditions on all external boundaries.
+As mentioned previously, the boundary conditions are homogenous dirichlet. We define an array `ess_bdr` that stores the values for the external boundary (denoted as the essential boundary). `MarkExternalBoundaries` is an MFEM function that applies the boundary conditions, for which the default is homogenous dirichlet.
 
 ```cpp
     ConstantCoefficient one(1.0);
@@ -240,10 +237,15 @@ As mentioned previously the boundary conditions are homogenous Dirichlet. We app
     }
 ```
 
-We set up the parallel bilinear forms on the finite element space for the Laplacian operator and Mass. This is created using the class `ParaBilinearForm`:
+We first set up the bilinear form, which we define as `a`, on the finite element space for the Laplacian operator (i.e. the stiffness matrix defined in equation (10)). This is created using the MFEM class `ParaBilinearForm` since we are computing this parallel.
 
 ```cpp
     ParBilinearForm *a = new ParBilinearForm(fespace);
+```
+
+We find the stiffness matrix $A$ by using a diffusion integrator, MFEM function `DiffusionIntegrator`, with diffusion coefficient $Q=1$ over the domain. We add a mass term if the mesh has no boundary (which is dependent on the mesh shape selected).
+
+```cpp
     a->AddDomainIntegrator(new DiffusionIntegrator(one));
     if (pmesh->bdr_attributes.Size() == 0)
     {
@@ -251,25 +253,31 @@ We set up the parallel bilinear forms on the finite element space for the Laplac
         // closed surface.
         a->AddDomainIntegrator(new MassIntegrator(one));
     }
+```
+
+We then assemble the stiffness matrix, and set all the diagonal values of this stiffness matrix to 1 the eiginvalues correspoding to the dirichlet boundary conditions are not selected as the eigenvalues of interest.
+
+```cpp
     a->Assemble();
     a->EliminateEssentialBCDiag(ess_bdr, 1.0);
     a->Finalize();
 ```
 
-We find the stiffness matrix $A$ by using a diffusion integrator, `DiffusionIntegrator`, over the domain. We add a mass term if the mesh has no boundary.
-
-We find the mass matrx $M$ by using the mass integrator `MassIntegrator`.
+We then set up the parllel bilinear form for the mass matrx $M$ (as defined in equation (11)) by using the MFEM mass integration function `MassIntegrator` and we input `one` into the function to signifiy the mass matrix is unweighted.
 
 ```cpp
     ParBilinearForm *m = new ParBilinearForm(fespace);
     m->AddDomainIntegrator(new MassIntegrator(one));
     m->Assemble();
+```
+
+As mentioned previously, the goal is to find the lowest eigenmodes. However we do not want our eigenvalues to correspond to the Dirichlet boundaries. Therefore, we shift the Dirichlet eigenvalues out of the computational range. This means for matrix $A$ we set the entries along the diagonal equal to 1. For matrix $M$ we set the entries on the diagonal to the minimal numerical limits.
+
+```cpp
     // shift the eigenvalue corresponding to eliminated dofs to a large value
     m->EliminateEssentialBCDiag(ess_bdr, numeric_limits<real_t>::min());
     m->Finalize();
 ```
-
-As mentioned previously the goal is to find the lowest eigenmodes. However we do not want our eigenvalues to correspond to the Dirichlet boundaries. Therefore, we shift the Dirichlet eigenvalues out of the computational range. This means for matrix $A$ we set the entries along the diagonal equal to 1. For matrix $M$ we set the entries on the diagonal to the minimal numerical limits.
 
 ```cpp
     HypreParMatrix *A = a->ParallelAssemble();
