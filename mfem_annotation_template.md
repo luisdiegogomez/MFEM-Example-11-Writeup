@@ -226,6 +226,20 @@ The number of unknowns corresponds to the size of the linear system, or in other
 
 As mentioned previously the boundary conditions are homogenous Dirichlet. We apply homogeneous Dirichlet boundary conditions on $\partial \Omega$. `ess_bdr` stores the attributes of the boundary and flags the attributes corresponding to homogenous Dirichlet boundary conditions. `MarkExternalBoundaries` applies the boundary conditions on all external boundaries.
 
+```cpp
+    ConstantCoefficient one(1.0);
+    Array<int> ess_bdr;
+    if (pmesh->bdr_attributes.Size())
+    {
+        ess_bdr.SetSize(pmesh->bdr_attributes.Max());
+        ess_bdr = 0;
+        // Apply boundary conditions on all external boundaries:
+        pmesh->MarkExternalBoundaries(ess_bdr);
+        // Boundary conditions can also be applied based on named attributes:
+        // pmesh->MarkNamedBoundaries(set_name, ess_bdr)
+    }
+```
+
 We set up the parallel bilinear forms on the finite element space for the Laplacian operator and Mass. This is created using the class `ParaBilinearForm`:
 
 ```cpp
@@ -260,20 +274,6 @@ As mentioned previously the goal is to find the lowest eigenmodes. However we do
 ```cpp
     HypreParMatrix *A = a->ParallelAssemble();
     HypreParMatrix *M = m->ParallelAssemble();
-```
-
-```cpp
-    ConstantCoefficient one(1.0);
-    Array<int> ess_bdr;
-    if (pmesh->bdr_attributes.Size())
-    {
-        ess_bdr.SetSize(pmesh->bdr_attributes.Max());
-        ess_bdr = 0;
-        // Apply boundary conditions on all external boundaries:
-        pmesh->MarkExternalBoundaries(ess_bdr);
-        // Boundary conditions can also be applied based on named attributes:
-        // pmesh->MarkNamedBoundaries(set_name, ess_bdr)
-    }
 ```
 
 ### Setting Up Eigensolver
